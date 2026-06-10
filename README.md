@@ -25,6 +25,7 @@ ssh root@IP 'tar xzf sacramento-release.tar.gz && cd sacramento && ./install.sh 
 ```
 
 Полное руководство с диаграммами: **[docs/РУКОВОДСТВО.md](docs/РУКОВОДСТВО.md)**
+Что умеет система (функционал, VIN/совместимость, SEO): **[docs/ФУНКЦИОНАЛ.md](docs/ФУНКЦИОНАЛ.md)**
 
 ## Документация
 
