@@ -36,7 +36,7 @@ class ChatIntegrationTest {
         assertThat(reply.token()).isNotBlank();
         assertThat(chatService.unreadConversations()).isEqualTo(1);
 
-        var list = chatService.adminList(null);
+        var list = chatService.adminList(null, 0, 50).getContent();
         assertThat(list).hasSize(1);
         assertThat(list.getFirst().visitorName()).isEqualTo("Ион");
         assertThat(list.getFirst().unread()).isEqualTo(1);
@@ -46,7 +46,7 @@ class ChatIntegrationTest {
     @Test
     void adminOpeningChatMarksReadAndReplyReachesVisitor() {
         var reply = chatService.visitorSend(null, null, "Здравствуйте!");
-        Long conversationId = chatService.adminList(null).getFirst().id();
+        Long conversationId = chatService.adminList(null, 0, 50).getContent().getFirst().id();
 
         // админ открыл диалог — непрочитанных не осталось
         chatService.adminMessages(conversationId, 0L);
@@ -71,13 +71,13 @@ class ChatIntegrationTest {
         chatService.visitorSend(first.token(), null, "Второе");
 
         assertThat(conversations.count()).isEqualTo(1);
-        assertThat(chatService.adminList(null).getFirst().unread()).isEqualTo(2);
+        assertThat(chatService.adminList(null, 0, 50).getContent().getFirst().unread()).isEqualTo(2);
     }
 
     @Test
     void newVisitorMessageReopensClosedConversation() {
         var reply = chatService.visitorSend(null, null, "Вопрос");
-        Long id = chatService.adminList(null).getFirst().id();
+        Long id = chatService.adminList(null, 0, 50).getContent().getFirst().id();
         chatService.setStatus(id, ChatConversation.Status.CLOSED);
 
         chatService.visitorSend(reply.token(), null, "Ещё вопрос");

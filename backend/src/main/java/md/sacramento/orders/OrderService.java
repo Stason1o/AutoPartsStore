@@ -220,9 +220,10 @@ public class OrderService {
         static final java.time.ZoneId CHISINAU = java.time.ZoneId.of("Europe/Chisinau");
     }
 
-    public List<Order> ordersPage(OrderStatus status, org.springframework.data.domain.Pageable pageable) {
-        return (status != null
+    public org.springframework.data.domain.Page<Order> ordersPage(
+            OrderStatus status, org.springframework.data.domain.Pageable pageable) {
+        return status != null
                 ? orders.findByStatusOrderByCreatedAtDesc(status, pageable)
-                : orders.findAllByOrderByCreatedAtDesc(pageable)).getContent();
+                : orders.findAllByOrderByCreatedAtDesc(pageable);
     }
 }

@@ -4,11 +4,12 @@ import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import InputBase from '@mui/material/InputBase';
 import Pagination from '@mui/material/Pagination';
-import { api } from '../api/client';
+import { api, qs } from '../api/client';
 import type { AdminProduct, Page, Vehicle } from '../api/types';
 import { C } from '../theme';
 import { Card, Field, Mono, TableHead } from '../components/ui';
 import { useToast } from '../components/Toast';
+import { useDebounced } from '../hooks/useDebounced';
 import VinLookupCard from './VinLookupCard';
 
 interface VehicleForm {
@@ -29,11 +30,24 @@ export default function ApplicabilityPage() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<VehicleForm>(EMPTY_FORM);
   const [vehicleFilter, setVehicleFilter] = useState('');
+  const [vehiclePage, setVehiclePage] = useState(0);
   const [unmatchedPage, setUnmatchedPage] = useState(0);
   const [assignProduct, setAssignProduct] = useState<AdminProduct | null>(null);
   const [assignFilter, setAssignFilter] = useState('');
 
-  const vehicles = useQuery({ queryKey: ['vehicles'], queryFn: () => api.get<Vehicle[]>('/api/admin/vehicles') });
+  const vehicleSearch = useDebounced(vehicleFilter.trim(), 300);
+  const assignSearch = useDebounced(assignFilter.trim(), 300);
+
+  const vehicles = useQuery({
+    queryKey: ['vehicles', vehicleSearch, vehiclePage],
+    queryFn: () =>
+      api.get<Page<Vehicle>>(`/api/admin/vehicles${qs({ search: vehicleSearch, page: vehiclePage, size: 50 })}`),
+  });
+  const assignVehicles = useQuery({
+    queryKey: ['vehicles', 'assign', assignSearch],
+    queryFn: () => api.get<Page<Vehicle>>(`/api/admin/vehicles${qs({ search: assignSearch, page: 0, size: 50 })}`),
+    enabled: assignProduct !== null,
+  });
   const unmatched = useQuery({
     queryKey: ['unmatched', unmatchedPage],
     queryFn: () => api.get<Page<AdminProduct>>(`/api/admin/vehicles/unmatched-products?page=${unmatchedPage}&size=20`),
@@ -104,12 +118,8 @@ export default function ApplicabilityPage() {
     setEditorOpen(true);
   };
 
-  const rows = (vehicles.data ?? []).filter(
-    (v) => vehicleFilter.trim() === '' || v.display.toLowerCase().includes(vehicleFilter.trim().toLowerCase()),
-  );
-  const assignCandidates = (vehicles.data ?? []).filter(
-    (v) => assignFilter.trim() === '' || v.display.toLowerCase().includes(assignFilter.trim().toLowerCase()),
-  );
+  const rows = vehicles.data?.content ?? [];
+  const assignCandidates = assignVehicles.data?.content ?? [];
 
   const grid = '1fr 140px 140px 40px';
 
@@ -121,10 +131,18 @@ export default function ApplicabilityPage() {
       <Card>
         <Box sx={{ p: '16px 20px', borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
           <Box sx={{ fontWeight: 700, fontSize: 15, whiteSpace: 'nowrap' }}>Справочник автомобилей</Box>
+          {vehicles.data && (
+            <Mono sx={{ fontSize: '11.5px', color: C.muted, whiteSpace: 'nowrap', flexShrink: 0 }}>
+              всего {vehicles.data.totalElements}
+            </Mono>
+          )}
           <InputBase
             placeholder="Поиск…"
             value={vehicleFilter}
-            onChange={(e) => setVehicleFilter(e.target.value)}
+            onChange={(e) => {
+              setVehicleFilter(e.target.value);
+              setVehiclePage(0);
+            }}
             sx={{
               flex: 1,
               maxWidth: 220,
@@ -201,7 +219,20 @@ export default function ApplicabilityPage() {
           </Box>
         ))}
         {!vehicles.isLoading && rows.length === 0 && (
-          <Box sx={{ p: '20px', fontSize: 13, color: C.muted }}>Справочник пуст — добавьте первый автомобиль.</Box>
+          <Box sx={{ p: '20px', fontSize: 13, color: C.muted }}>
+            {vehicleSearch ? 'Ничего не найдено — измените запрос.' : 'Справочник пуст — добавьте первый автомобиль.'}
+          </Box>
+        )}
+        {vehicles.data && vehicles.data.totalPages > 1 && (
+          <Box sx={{ p: '12px 20px', borderTop: `1px solid ${C.line}`, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              count={vehicles.data.totalPages}
+              page={vehiclePage + 1}
+              onChange={(_, v) => setVehiclePage(v - 1)}
+              shape="rounded"
+              size="small"
+            />
+          </Box>
         )}
       </Card>
 
@@ -368,7 +399,8 @@ export default function ApplicabilityPage() {
               }}
             />
             <Box sx={{ border: `1px solid ${C.line}`, borderRadius: '11px', overflow: 'auto', maxHeight: 280 }}>
-              {assignCandidates.slice(0, 30).map((v) => (
+              {assignVehicles.isLoading && <Box sx={{ p: '14px 16px', fontSize: 13, color: C.muted }}>Загрузка…</Box>}
+              {assignCandidates.map((v) => (
                 <Box
                   key={v.id}
                   onClick={() => link.mutate({ vehicleId: v.id, productId: assignProduct.id })}
@@ -386,10 +418,15 @@ export default function ApplicabilityPage() {
                   <Box sx={{ fontSize: 12, color: C.accent, fontWeight: 600 }}>+ привязать</Box>
                 </Box>
               ))}
-              {assignCandidates.length === 0 && (
+              {!assignVehicles.isLoading && assignCandidates.length === 0 && (
                 <Box sx={{ p: '14px 16px', fontSize: 13, color: C.muted }}>Нет совпадений — добавьте авто в справочник.</Box>
               )}
             </Box>
+            {(assignVehicles.data?.totalElements ?? 0) > 50 && (
+              <Box sx={{ mt: '8px', fontSize: 12, color: C.muted }}>
+                Показаны первые 50 из {assignVehicles.data?.totalElements} — уточните поиск.
+              </Box>
+            )}
           </>
         )}
       </Dialog>

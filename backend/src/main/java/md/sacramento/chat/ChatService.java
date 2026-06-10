@@ -94,11 +94,16 @@ public class ChatService {
     // ---------- админ ----------
 
     @Transactional(readOnly = true)
-    public List<ConversationView> adminList(ChatConversation.Status status) {
-        List<ChatConversation> list = status != null
-                ? conversations.findByStatusOrderByLastMessageAtDesc(status)
-                : conversations.findAllByOrderByLastMessageAtDesc();
-        return list.stream().map(c -> new ConversationView(
+    public org.springframework.data.domain.Page<ConversationView> adminList(
+            ChatConversation.Status status, int page, int size) {
+        var pageable = org.springframework.data.domain.PageRequest.of(
+                Math.max(0, page), Math.clamp(size, 1, 100),
+                org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.DESC, "lastMessageAt"));
+        var result = status != null
+                ? conversations.findByStatus(status, pageable)
+                : conversations.findAll(pageable);
+        return result.map(c -> new ConversationView(
                 c.getId(),
                 c.getVisitorName(),
                 c.getStatus(),
@@ -108,8 +113,7 @@ public class ChatService {
                 messages.findFirstByConversationIdOrderByIdDesc(c.getId())
                         .map(m -> m.getBody().length() > 80
                                 ? m.getBody().substring(0, 80) + '…' : m.getBody())
-                        .orElse("")))
-                .toList();
+                        .orElse("")));
     }
 
     /** Открытие диалога админом помечает сообщения посетителя прочитанными. */

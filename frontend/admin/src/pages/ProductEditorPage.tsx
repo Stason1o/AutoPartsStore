@@ -4,12 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import InputBase from '@mui/material/InputBase';
-import { api } from '../api/client';
-import type { AdminProduct, Category, PhotoMeta, ProductRequest, Rates, Vehicle } from '../api/types';
+import { api, qs } from '../api/client';
+import type { AdminProduct, Category, Page, PhotoMeta, ProductRequest, Rates, Vehicle } from '../api/types';
 import { C, MONO } from '../theme';
 import { Card, Field, FieldLabel, Mono, Toggle } from '../components/ui';
 import { fmtMoney, fmtMoney2 } from '../format';
 import { useToast } from '../components/Toast';
+import { useDebounced } from '../hooks/useDebounced';
 
 interface FormState {
   sku: string;
@@ -818,9 +819,27 @@ function FitTab({ productId, slug, active }: { productId: number; slug: string |
   const [linked, setLinked] = useState<Vehicle[]>([]);
   const [initialized, setInitialized] = useState(false);
 
+  const search = useDebounced(filter.trim(), 300);
+
   const vehicles = useQuery({
-    queryKey: ['vehicles'],
-    queryFn: () => api.get<Vehicle[]>('/api/admin/vehicles'),
+    queryKey: ['vehicles', 'fit-search', search],
+    queryFn: () => api.get<Page<Vehicle>>(`/api/admin/vehicles${qs({ search, page: 0, size: 50 })}`),
+  });
+
+  // Полный справочник нужен один раз — чтобы сматчить display-строки привязок к id.
+  // Эндпоинт пагинирован (max size 200), поэтому собираем все страницы.
+  const allVehicles = useQuery({
+    queryKey: ['vehicles', 'fit-init'],
+    queryFn: async () => {
+      const out: Vehicle[] = [];
+      for (let page = 0; ; page++) {
+        const p = await api.get<Page<Vehicle>>(`/api/admin/vehicles${qs({ page, size: 200 })}`);
+        out.push(...p.content);
+        if (page + 1 >= p.totalPages || p.content.length === 0) break;
+      }
+      return out;
+    },
+    staleTime: 60_000,
   });
 
   // Список привязок берём из публичной карточки (display-строки) и матчим к справочнику.
@@ -832,12 +851,12 @@ function FitTab({ productId, slug, active }: { productId: number; slug: string |
   });
 
   useEffect(() => {
-    if (initialized || !vehicles.data) return;
+    if (initialized || !allVehicles.data) return;
     if (slug && active && !detail.data && !detail.isError) return;
     const fits = detail.data?.fitsVehicles ?? [];
-    setLinked(vehicles.data.filter((v) => fits.includes(v.display)));
+    setLinked(allVehicles.data.filter((v) => fits.includes(v.display)));
     setInitialized(true);
-  }, [vehicles.data, detail.data, detail.isError, initialized, slug, active]);
+  }, [allVehicles.data, detail.data, detail.isError, initialized, slug, active]);
 
   const link = useMutation({
     mutationFn: (vehicleId: number) => api.post(`/api/admin/vehicles/${vehicleId}/products/${productId}`),
@@ -865,11 +884,8 @@ function FitTab({ productId, slug, active }: { productId: number; slug: string |
     toast('Привязка удалена');
   };
 
-  const candidates = (vehicles.data ?? []).filter(
-    (v) =>
-      !linked.some((x) => x.id === v.id) &&
-      (filter.trim() === '' || v.display.toLowerCase().includes(filter.trim().toLowerCase())),
-  );
+  const candidates = (vehicles.data?.content ?? []).filter((v) => !linked.some((x) => x.id === v.id));
+  const totalFound = vehicles.data?.totalElements ?? 0;
 
   return (
     <Box sx={{ maxWidth: 680, animation: 'aIn .2s ease both' }}>
@@ -920,7 +936,8 @@ function FitTab({ productId, slug, active }: { productId: number; slug: string |
         }}
       />
       <Box sx={{ border: `1px solid ${C.line}`, borderRadius: '11px', overflow: 'auto', maxHeight: 260 }}>
-        {candidates.slice(0, 30).map((v) => (
+        {vehicles.isLoading && <Box sx={{ p: '14px 16px', fontSize: 13, color: C.muted }}>Загрузка…</Box>}
+        {candidates.map((v) => (
           <Box
             key={v.id}
             onClick={() => addVehicle(v)}
@@ -938,8 +955,15 @@ function FitTab({ productId, slug, active }: { productId: number; slug: string |
             <Box sx={{ fontSize: 12, color: C.accent, fontWeight: 600 }}>+ привязать</Box>
           </Box>
         ))}
-        {candidates.length === 0 && <Box sx={{ p: '14px 16px', fontSize: 13, color: C.muted }}>Нет совпадений.</Box>}
+        {!vehicles.isLoading && candidates.length === 0 && (
+          <Box sx={{ p: '14px 16px', fontSize: 13, color: C.muted }}>Нет совпадений.</Box>
+        )}
       </Box>
+      {totalFound > 50 && (
+        <Box sx={{ mt: '8px', fontSize: 12, color: C.muted }}>
+          Показаны первые 50 из {totalFound} — уточните поиск.
+        </Box>
+      )}
     </Box>
   );
 }

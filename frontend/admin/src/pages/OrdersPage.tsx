@@ -1,8 +1,9 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
-import { api } from '../api/client';
-import type { AdminOrder, OrderStatus } from '../api/types';
+import Pagination from '@mui/material/Pagination';
+import { api, qs } from '../api/client';
+import type { AdminOrder, OrderStatus, Page } from '../api/types';
 import { C } from '../theme';
 import { Card, Mono, StatusBadge, TableHead } from '../components/ui';
 import { DELIVERY_SHORT, fmtDateTime, fmtMoney, STATUS_FLOW, STATUS_META } from '../format';
@@ -11,28 +12,38 @@ export default function OrdersPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const statusFilter = (params.get('status') ?? 'all') as OrderStatus | 'all';
+  const page = Number(params.get('page') ?? '0');
 
   const orders = useQuery({
-    queryKey: ['orders', 'all'],
-    queryFn: () => api.get<AdminOrder[]>('/api/admin/orders?size=100'),
+    queryKey: ['orders', statusFilter, page],
+    queryFn: () =>
+      api.get<Page<AdminOrder>>(
+        `/api/admin/orders${qs({ status: statusFilter === 'all' ? null : statusFilter, page, size: 30 })}`,
+      ),
     refetchInterval: 30_000,
   });
 
-  const all = orders.data ?? [];
+  const data = orders.data;
   const chips: { key: OrderStatus | 'all'; label: string }[] = [
     { key: 'all', label: 'Все' },
     ...STATUS_FLOW.map((k) => ({ key: k, label: STATUS_META[k].label })),
     { key: 'CANCELLED' as OrderStatus, label: STATUS_META.CANCELLED.label },
   ];
 
-  const rows = statusFilter === 'all' ? all : all.filter((o) => o.status === statusFilter);
+  const setPage = (p: number) => {
+    const next = new URLSearchParams(params);
+    if (p <= 0) next.delete('page');
+    else next.set('page', String(p));
+    setParams(next, { replace: true });
+  };
+
+  const rows = data?.content ?? [];
   const grid = '120px minmax(200px,1fr) 90px 150px 150px 110px 56px';
 
   return (
     <Box sx={{ animation: 'aIn .25s ease both' }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px', mb: '18px' }}>
         {chips.map((c) => {
-          const count = c.key === 'all' ? all.length : all.filter((o) => o.status === c.key).length;
           const active = statusFilter === c.key;
           return (
             <Box
@@ -55,7 +66,7 @@ export default function OrdersPage() {
               }}
             >
               {c.label}
-              <Mono sx={{ fontSize: 11, opacity: 0.7 }}>{count}</Mono>
+              {active && data && <Mono sx={{ fontSize: 11, opacity: 0.7 }}>{data.totalElements}</Mono>}
             </Box>
           );
         })}
@@ -137,6 +148,30 @@ export default function OrdersPage() {
             ))}
           </Box>
         </Box>
+        {data && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: '14px 18px',
+              borderTop: `1px solid ${C.line}`,
+            }}
+          >
+            <Box sx={{ fontSize: '12.5px', color: C.muted }}>
+              Всего: <Mono sx={{ fontWeight: 600 }}>{data.totalElements}</Mono>
+            </Box>
+            {data.totalPages > 1 && (
+              <Pagination
+                count={data.totalPages}
+                page={page + 1}
+                onChange={(_, v) => setPage(v - 1)}
+                shape="rounded"
+                size="small"
+              />
+            )}
+          </Box>
+        )}
       </Card>
     </Box>
   );

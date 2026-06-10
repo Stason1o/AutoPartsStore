@@ -27,9 +27,11 @@ public class AdminChatController {
     }
 
     @GetMapping
-    public List<ChatService.ConversationView> list(
-            @RequestParam(required = false) ChatConversation.Status status) {
-        return service.adminList(status);
+    public org.springframework.data.domain.Page<ChatService.ConversationView> list(
+            @RequestParam(required = false) ChatConversation.Status status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        return service.adminList(status, page, size);
     }
 
     @GetMapping("/{id}/messages")

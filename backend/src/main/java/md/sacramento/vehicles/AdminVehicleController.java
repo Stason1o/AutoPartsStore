@@ -40,12 +40,15 @@ public class AdminVehicleController {
         this.products = products;
     }
 
+    /** Постраничный справочник с поиском по марке/модели. */
     @GetMapping
-    public List<VinService.VehicleCandidate> list(@RequestParam(required = false) String make) {
-        List<Vehicle> result = make != null
-                ? vehicles.findByMakeIgnoreCaseOrderByModelAscYearFromAsc(make)
-                : vehicles.findAll();
-        return result.stream().map(VinService.VehicleCandidate::of).toList();
+    public Page<VinService.VehicleCandidate> list(@RequestParam(required = false) String search,
+                                                  @RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "50") int size) {
+        String q = search == null || search.isBlank()
+                ? null : "%" + search.trim().toLowerCase() + "%";
+        return vehicles.search(q, PageRequest.of(Math.max(0, page), Math.clamp(size, 1, 200)))
+                .map(VinService.VehicleCandidate::of);
     }
 
     @PostMapping

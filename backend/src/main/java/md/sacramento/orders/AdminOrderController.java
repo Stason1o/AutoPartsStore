@@ -42,12 +42,12 @@ public class AdminOrderController {
 
     @GetMapping("/orders")
     @Transactional(readOnly = true)
-    public List<OrderDtos.AdminOrderView> list(@RequestParam(required = false) OrderStatus status,
-                                               @RequestParam(defaultValue = "0") int page,
-                                               @RequestParam(defaultValue = "30") int size) {
-        return service.ordersPage(status, PageRequest.of(page, Math.clamp(size, 1, 100))).stream()
-                .map(OrderDtos.AdminOrderView::of)
-                .toList();
+    public org.springframework.data.domain.Page<OrderDtos.AdminOrderView> list(
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        return service.ordersPage(status, PageRequest.of(page, Math.clamp(size, 1, 100)))
+                .map(OrderDtos.AdminOrderView::of);
     }
 
     @GetMapping("/orders/{id}")

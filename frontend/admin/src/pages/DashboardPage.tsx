@@ -31,7 +31,8 @@ export default function DashboardPage() {
   });
   const newOrders = useQuery({
     queryKey: ['orders', 'NEW'],
-    queryFn: () => api.get<AdminOrder[]>('/api/admin/orders?status=NEW&size=20'),
+    queryFn: () => api.get<Page<AdminOrder>>('/api/admin/orders?status=NEW&size=20'),
+    select: (page) => page.content,
     refetchInterval: 30_000,
   });
   const zeroStock = useQuery({

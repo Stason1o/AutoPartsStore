@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import InputBase from '@mui/material/InputBase';
-import { api } from '../api/client';
-import type { ChatMessage, ChatStatus, ChatSummary } from '../api/types';
+import Pagination from '@mui/material/Pagination';
+import { api, qs } from '../api/client';
+import type { ChatMessage, ChatStatus, ChatSummary, Page } from '../api/types';
 import { C, MONO } from '../theme';
 import { Card, Mono, StatusBadge } from '../components/ui';
 import { useToast } from '../components/Toast';
@@ -35,6 +36,7 @@ export default function ChatsPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [filter, setFilter] = useState<Filter>('all');
+  const [chatPage, setChatPage] = useState(0);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   // Снимок выбранного диалога — чтобы шапка работала, даже если диалог выпал из отфильтрованного списка.
   const [snapshot, setSnapshot] = useState<ChatSummary | null>(null);
@@ -44,12 +46,15 @@ export default function ChatsPage() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const chats = useQuery({
-    queryKey: ['chats', filter],
-    queryFn: () => api.get<ChatSummary[]>(`/api/admin/chats${filter === 'all' ? '' : `?status=${filter}`}`),
+    queryKey: ['chats', filter, chatPage],
+    queryFn: () =>
+      api.get<Page<ChatSummary>>(
+        `/api/admin/chats${qs({ status: filter === 'all' ? null : filter, page: chatPage, size: 30 })}`,
+      ),
     refetchInterval: 5_000,
   });
 
-  const list = chats.data ?? [];
+  const list = chats.data?.content ?? [];
   const selected = list.find((c) => c.id === selectedId) ?? (snapshot?.id === selectedId ? snapshot : null);
 
   // Поллинг сообщений выбранного диалога каждые 3 секунды (afterId — накапливаем).
@@ -147,7 +152,10 @@ export default function ChatsPage() {
                 <Box
                   key={c.key}
                   component="button"
-                  onClick={() => setFilter(c.key)}
+                  onClick={() => {
+                    setFilter(c.key);
+                    setChatPage(0);
+                  }}
                   sx={{
                     background: active ? C.g800 : C.paper,
                     color: active ? '#fff' : C.ink2,
@@ -247,6 +255,17 @@ export default function ChatsPage() {
               );
             })}
           </Box>
+          {chats.data && chats.data.totalPages > 1 && (
+            <Box sx={{ p: '8px 10px', borderTop: `1px solid ${C.line}`, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+              <Pagination
+                count={chats.data.totalPages}
+                page={chatPage + 1}
+                onChange={(_, v) => setChatPage(v - 1)}
+                shape="rounded"
+                size="small"
+              />
+            </Box>
+          )}
         </Box>
 
         {/* ===== Правая колонка: выбранный диалог ===== */}

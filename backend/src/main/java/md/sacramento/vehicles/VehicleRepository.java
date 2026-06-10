@@ -12,6 +12,15 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     @Query("select distinct v.make from Vehicle v order by v.make")
     List<String> findDistinctMakes();
 
+    /** Постраничный поиск по справочнику: марка или модель содержит строку. */
+    @Query("""
+            select v from Vehicle v
+            where :q is null or lower(v.make) like :q or lower(v.model) like :q
+            order by v.make, v.model, v.yearFrom
+            """)
+    org.springframework.data.domain.Page<Vehicle> search(@Param("q") String q,
+            org.springframework.data.domain.Pageable pageable);
+
     List<Vehicle> findByMakeIgnoreCaseOrderByModelAscYearFromAsc(String make);
 
     Optional<Vehicle> findByMakeIgnoreCaseAndModelIgnoreCaseAndYearFromAndYearToAndEngine(

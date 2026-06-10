@@ -9,7 +9,6 @@ public interface ChatConversationRepository extends JpaRepository<ChatConversati
 
     Optional<ChatConversation> findByVisitorToken(String visitorToken);
 
-    List<ChatConversation> findByStatusOrderByLastMessageAtDesc(ChatConversation.Status status);
-
-    List<ChatConversation> findAllByOrderByLastMessageAtDesc();
+    org.springframework.data.domain.Page<ChatConversation> findByStatus(
+            ChatConversation.Status status, org.springframework.data.domain.Pageable pageable);
 }
