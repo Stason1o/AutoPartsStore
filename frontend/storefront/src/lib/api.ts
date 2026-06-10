@@ -6,8 +6,11 @@ export interface CategoryNode {
   name: string;
   slug: string;
   sortOrder: number;
+  hasImage: boolean;
   children: CategoryNode[];
 }
+
+export const categoryImageUrl = (id: number) => `/api/categories/${id}/image`;
 
 export interface ProductListItem {
   id: number;

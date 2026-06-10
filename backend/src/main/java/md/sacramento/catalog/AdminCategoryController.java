@@ -9,8 +9,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -50,5 +54,19 @@ public class AdminCategoryController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);
+    }
+
+    @PostMapping("/{id}/image")
+    public void uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            service.setImage(id, file.getBytes(), file.getContentType());
+        } catch (IOException e) {
+            throw new UncheckedIOException("Не удалось прочитать файл", e);
+        }
+    }
+
+    @DeleteMapping("/{id}/image")
+    public void deleteImage(@PathVariable Long id) {
+        service.deleteImage(id);
     }
 }

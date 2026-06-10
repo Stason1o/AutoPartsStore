@@ -1,5 +1,6 @@
 package md.sacramento.catalog;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -38,6 +39,11 @@ public class Category {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Basic(fetch = FetchType.LAZY)
+    private byte[] image;
+
+    private String imageContentType;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -52,4 +58,9 @@ public class Category {
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+    public byte[] getImage() { return image; }
+    public void setImage(byte[] image) { this.image = image; }
+    public String getImageContentType() { return imageContentType; }
+    public void setImageContentType(String imageContentType) { this.imageContentType = imageContentType; }
+    public boolean hasImage() { return imageContentType != null; }
 }

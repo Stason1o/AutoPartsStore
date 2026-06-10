@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { serverGet, type CategoryNode } from '@/lib/api';
+import { serverGet, categoryImageUrl, type CategoryNode } from '@/lib/api';
 import { getDict } from '@/i18n/dictionaries';
 import VehiclePicker from '@/components/VehiclePicker';
 import { T } from '@/tokens';
@@ -41,8 +41,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
           {categories.slice(0, 8).map(cat => (
             <Link key={cat.id} href={`/${locale}/catalog?categoryId=${cat.id}`} style={{ textAlign: 'left', background: T.paper, border: `1px solid ${T.line}`, borderRadius: 14, padding: 20, textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div className="placeholder-stripes" style={{ height: 88, borderRadius: 10, display: 'grid', placeItems: 'center', border: `1px solid ${T.line}` }}>
-                <span style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.1em', color: T.muted2, textTransform: 'uppercase' }}>{cat.slug}</span>
+              <div className={cat.hasImage ? undefined : 'placeholder-stripes'} style={{ height: 88, borderRadius: 10, display: 'grid', placeItems: 'center', border: `1px solid ${T.line}`, overflow: 'hidden', background: cat.hasImage ? '#fff' : undefined }}>
+                {cat.hasImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={categoryImageUrl(cat.id)} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.1em', color: T.muted2, textTransform: 'uppercase' }}>{cat.slug}</span>
+                )}
               </div>
               <div style={{ fontWeight: 700, fontSize: 15.5, color: T.ink }}>{cat.name}</div>
             </Link>

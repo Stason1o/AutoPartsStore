@@ -18,16 +18,17 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     public record CategoryNode(Long id, String name, String slug, int sortOrder,
-                               List<CategoryNode> children) {
+                               boolean hasImage, List<CategoryNode> children) {
     }
 
     public record CategoryDto(Long id, String name, String slug, Long parentId,
-                              BigDecimal markupPercent, int sortOrder, boolean active) {
+                              BigDecimal markupPercent, int sortOrder, boolean active,
+                              boolean hasImage) {
 
         static CategoryDto of(Category c) {
             return new CategoryDto(c.getId(), c.getName(), c.getSlug(),
                     c.getParent() != null ? c.getParent().getId() : null,
-                    c.getMarkupPercent(), c.getSortOrder(), c.isActive());
+                    c.getMarkupPercent(), c.getSortOrder(), c.isActive(), c.hasImage());
         }
     }
 
@@ -51,7 +52,7 @@ public class CategoryService {
                 .filter(c -> Objects.equals(c.getParent() != null ? c.getParent().getId() : null, parentId))
                 .sorted((a, b) -> Integer.compare(a.getSortOrder(), b.getSortOrder()))
                 .map(c -> new CategoryNode(c.getId(), c.getName(), c.getSlug(), c.getSortOrder(),
-                        buildTree(all, c.getId())))
+                        c.hasImage(), buildTree(all, c.getId())))
                 .toList();
     }
 
@@ -61,6 +62,39 @@ public class CategoryService {
                 .sorted((a, b) -> Integer.compare(a.getSortOrder(), b.getSortOrder()))
                 .map(CategoryDto::of)
                 .toList();
+    }
+
+    /** Загрузка/замена фото категории (JPEG/PNG/WebP). */
+    @Transactional
+    public void setImage(Long id, byte[] data, String contentType) {
+        if (contentType == null
+                || !java.util.Set.of("image/jpeg", "image/png", "image/webp").contains(contentType)) {
+            throw new IllegalArgumentException("Допустимы только изображения JPEG, PNG или WebP");
+        }
+        Category category = getOrThrow(id);
+        category.setImage(data);
+        category.setImageContentType(contentType);
+        categories.save(category);
+    }
+
+    @Transactional
+    public void deleteImage(Long id) {
+        Category category = getOrThrow(id);
+        category.setImage(null);
+        category.setImageContentType(null);
+        categories.save(category);
+    }
+
+    public record ImageContent(byte[] bytes, String contentType) {
+    }
+
+    @Transactional(readOnly = true)
+    public ImageContent image(Long id) {
+        Category category = getOrThrow(id);
+        if (!category.hasImage()) {
+            throw new NotFoundException("У категории нет фото: " + id);
+        }
+        return new ImageContent(category.getImage(), category.getImageContentType());
     }
 
     @Transactional

@@ -73,6 +73,27 @@ export default function CategoriesPage() {
   const [editActive, setEditActive] = useState(true);
   const [form, setForm] = useState<CategoryForm>(EMPTY_FORM);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  // фото категории: выбранный файл, превью и пометка удаления существующего
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [hadImage, setHadImage] = useState(false);
+  const [removeImage, setRemoveImage] = useState(false);
+
+  const pickImage = (file: File | null | undefined) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast('Допустимы JPEG, PNG или WebP', 'error');
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setRemoveImage(false);
+  };
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (hadImage) setRemoveImage(true);
+  };
 
   const categories = useQuery({
     queryKey: ['categories'],
@@ -84,19 +105,27 @@ export default function CategoriesPage() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['categories'] });
 
   const save = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const parentId = form.parentId ? Number(form.parentId) : null;
       const markupPercent = num(form.markupPercent);
       const sortOrder = num(form.sortOrder) ?? 0;
-      return editId == null
-        ? api.post<Category>('/api/admin/categories', { name: form.name.trim(), parentId, markupPercent, sortOrder })
-        : api.put<Category>(`/api/admin/categories/${editId}`, {
+      const saved = editId == null
+        ? await api.post<Category>('/api/admin/categories', { name: form.name.trim(), parentId, markupPercent, sortOrder })
+        : await api.put<Category>(`/api/admin/categories/${editId}`, {
             name: form.name.trim(),
             parentId,
             markupPercent,
             sortOrder,
             active: editActive,
           });
+      // фото — отдельным запросом после сохранения категории
+      if (imageFile) {
+        const fd = new FormData();
+        fd.append('file', imageFile);
+        await api.post(`/api/admin/categories/${saved.id}/image`, fd);
+      } else if (removeImage) {
+        await api.delete(`/api/admin/categories/${saved.id}/image`);
+      }
     },
     onSuccess: () => {
       invalidate();
@@ -132,10 +161,18 @@ export default function CategoriesPage() {
     },
   });
 
+  const resetImageState = (existing: boolean) => {
+    setImageFile(null);
+    setImagePreview(null);
+    setHadImage(existing);
+    setRemoveImage(false);
+  };
+
   const openCreate = () => {
     setEditId(null);
     setEditActive(true);
     setForm(EMPTY_FORM);
+    resetImageState(false);
     setEditorOpen(true);
   };
 
@@ -148,8 +185,13 @@ export default function CategoriesPage() {
       markupPercent: c.markupPercent != null ? String(c.markupPercent) : '',
       sortOrder: String(c.sortOrder),
     });
+    resetImageState(c.hasImage);
     setEditorOpen(true);
   };
+
+  // текущее изображение для превью в диалоге: новое → существующее → нет
+  const currentImageUrl = imagePreview
+    ?? (editId != null && hadImage && !removeImage ? `/api/categories/${editId}/image` : null);
 
   // Кандидаты в родители: все, кроме редактируемой категории и её потомков.
   const excluded = useMemo(
@@ -222,6 +264,13 @@ export default function CategoriesPage() {
                   └
                 </Box>
               )}
+              <Box sx={{ width: 34, height: 34, borderRadius: '7px', border: `1px solid ${C.line}`, overflow: 'hidden', flexShrink: 0, display: 'grid', placeItems: 'center', background: C.paper2 }}>
+                {cat.hasImage ? (
+                  <Box component="img" src={`/api/categories/${cat.id}/image`} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <Box sx={{ width: 12, height: 12, borderRadius: '3px', border: `1.5px solid ${C.muted2}` }} />
+                )}
+              </Box>
               <Box sx={{ fontSize: '13.5px', fontWeight: depth === 0 ? 700 : 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {cat.name}
               </Box>
@@ -326,13 +375,39 @@ export default function CategoriesPage() {
             </Box>
           </Box>
           <Field
-            label="Наценка, % (пусто — глобальная)"
+            label="Наценка, %"
             value={form.markupPercent}
             onChange={(v) => setForm((f) => ({ ...f, markupPercent: v }))}
             mono
-            placeholder="—"
+            placeholder="глоб."
           />
           <Field label="Порядок" value={form.sortOrder} onChange={(v) => setForm((f) => ({ ...f, sortOrder: v }))} mono placeholder="0" />
+
+          {/* Фото категории */}
+          <Box sx={{ gridColumn: '1 / -1' }}>
+            <FieldLabel>Фото категории <Box component="span" sx={{ color: C.muted, fontWeight: 400 }}>(для плитки на сайте)</Box></FieldLabel>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <Box sx={{ width: 88, height: 88, borderRadius: '10px', border: `1px solid ${C.line}`, overflow: 'hidden', flexShrink: 0, display: 'grid', placeItems: 'center', background: C.paper2 }}>
+                {currentImageUrl ? (
+                  <Box component="img" src={currentImageUrl} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <Box sx={{ color: C.muted, fontSize: 11, fontFamily: 'var(--mono, monospace)' }}>нет фото</Box>
+                )}
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Box component="label" sx={{ background: C.paper2, border: `1px solid ${C.line}`, borderRadius: '8px', p: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: C.ink, '&:hover': { borderColor: C.accent } }}>
+                  {currentImageUrl ? 'Заменить фото' : 'Загрузить фото'}
+                  <Box component="input" type="file" accept="image/jpeg,image/png,image/webp" hidden
+                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => pickImage(e.target.files?.[0])} />
+                </Box>
+                {currentImageUrl && (
+                  <Box component="button" onClick={clearImage} sx={{ background: 'none', border: 0, color: C.warn, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textAlign: 'left', p: 0, fontFamily: 'inherit' }}>
+                    Удалить фото
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: '10px', mt: '24px' }}>
           <Box

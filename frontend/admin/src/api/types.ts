@@ -63,6 +63,7 @@ export interface Category {
   markupPercent: number | null;
   sortOrder: number;
   active: boolean;
+  hasImage: boolean;
 }
 
 export interface Vehicle {
