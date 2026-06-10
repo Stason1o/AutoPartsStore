@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrfTokenRequestHandler(csrfHandler)
                 // публичные стат-эндпоинты без сессии + логин (до получения токена)
-                .ignoringRequestMatchers("/api/admin/login", "/api/orders", "/api/vin/**"))
+                .ignoringRequestMatchers("/api/admin/login", "/api/orders", "/api/vin/**", "/api/chat/**"))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/admin/login").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

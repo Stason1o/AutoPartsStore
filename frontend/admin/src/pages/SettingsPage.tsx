@@ -19,6 +19,8 @@ export default function SettingsPage() {
   const [photoMax, setPhotoMax] = useState('');
   const [keepCount, setKeepCount] = useState('');
 
+  const [contacts, setContacts] = useState<Record<string, string>>({});
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -31,6 +33,14 @@ export default function SettingsPage() {
     setPickupHours(s.pickup_hours ?? '');
     setPhotoMax(s.photo_max_size_mb ?? '');
     setKeepCount(s.snapshot_keep_count ?? '');
+    setContacts({
+      contact_phone: s.contact_phone ?? '',
+      contact_email: s.contact_email ?? '',
+      contact_viber: s.contact_viber ?? '',
+      contact_whatsapp: s.contact_whatsapp ?? '',
+      contact_telegram: s.contact_telegram ?? '',
+      contact_instagram: s.contact_instagram ?? '',
+    });
   }, [settings.data]);
 
   const save = useMutation({
@@ -41,6 +51,7 @@ export default function SettingsPage() {
         pickup_hours: pickupHours,
         photo_max_size_mb: photoMax,
         snapshot_keep_count: keepCount,
+        ...contacts,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
@@ -107,6 +118,21 @@ export default function SettingsPage() {
         <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
           <Field label="Адрес" value={pickupAddress} onChange={setPickupAddress} />
           <Field label="Часы работы" value={pickupHours} onChange={setPickupHours} />
+        </Box>
+      </Card>
+
+      <Card sx={{ p: '22px' }}>
+        <Box sx={{ fontWeight: 700, fontSize: 15, mb: '4px' }}>Контакты на витрине</Box>
+        <Box sx={{ fontSize: 13, color: C.muted, mb: '16px' }}>
+          Показываются в подвале сайта. Пустые поля посетители не увидят.
+        </Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <Field label="Телефон" value={contacts.contact_phone ?? ''} onChange={(v) => setContacts((c) => ({ ...c, contact_phone: v }))} mono />
+          <Field label="E-mail" value={contacts.contact_email ?? ''} onChange={(v) => setContacts((c) => ({ ...c, contact_email: v }))} mono />
+          <Field label="Viber (номер)" value={contacts.contact_viber ?? ''} onChange={(v) => setContacts((c) => ({ ...c, contact_viber: v }))} mono />
+          <Field label="WhatsApp (номер)" value={contacts.contact_whatsapp ?? ''} onChange={(v) => setContacts((c) => ({ ...c, contact_whatsapp: v }))} mono />
+          <Field label="Telegram (@ник)" value={contacts.contact_telegram ?? ''} onChange={(v) => setContacts((c) => ({ ...c, contact_telegram: v }))} mono />
+          <Field label="Instagram (@ник)" value={contacts.contact_instagram ?? ''} onChange={(v) => setContacts((c) => ({ ...c, contact_instagram: v }))} mono />
         </Box>
       </Card>
 

@@ -19,7 +19,9 @@ public class AdminSettingsController {
             SettingsService.PICKUP_ADDRESS,
             SettingsService.PICKUP_HOURS,
             SettingsService.PHOTO_MAX_SIZE_MB,
-            SettingsService.SNAPSHOT_KEEP_COUNT);
+            SettingsService.SNAPSHOT_KEEP_COUNT,
+            "contact_phone", "contact_email", "contact_viber",
+            "contact_whatsapp", "contact_telegram", "contact_instagram");
 
     private final SettingsService settings;
     private final AuditService audit;

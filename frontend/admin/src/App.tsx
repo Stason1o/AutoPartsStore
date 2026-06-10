@@ -9,6 +9,7 @@ import ProductEditorPage from './pages/ProductEditorPage';
 import CategoriesPage from './pages/CategoriesPage';
 import OrdersPage from './pages/OrdersPage';
 import OrderCardPage from './pages/OrderCardPage';
+import ChatsPage from './pages/ChatsPage';
 import RatesPage from './pages/RatesPage';
 import ImportExportPage from './pages/ImportExportPage';
 import ApplicabilityPage from './pages/ApplicabilityPage';
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/orders/:id" element={<OrderCardPage />} />
+        <Route path="/chats" element={<ChatsPage />} />
         <Route path="/rates" element={<RatesPage />} />
         <Route path="/import-export" element={<ImportExportPage />} />
         <Route path="/applicability" element={<ApplicabilityPage />} />

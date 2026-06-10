@@ -31,10 +31,13 @@ public class AdminOrderController {
 
     private final OrderService service;
     private final PricingService pricingService;
+    private final md.sacramento.chat.ChatService chatService;
 
-    public AdminOrderController(OrderService service, PricingService pricingService) {
+    public AdminOrderController(OrderService service, PricingService pricingService,
+                                md.sacramento.chat.ChatService chatService) {
         this.service = service;
         this.pricingService = pricingService;
+        this.chatService = chatService;
     }
 
     @GetMapping("/orders")
@@ -84,6 +87,7 @@ public class AdminOrderController {
         result.put("ordersToday", summary.ordersToday());
         result.put("zeroStockProducts", summary.zeroStockProducts());
         result.put("usdRate", pricingService.currentRate("USD").orElse(null));
+        result.put("unreadChats", chatService.unreadConversations());
         return result;
     }
 }

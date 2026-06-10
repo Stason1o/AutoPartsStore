@@ -121,6 +121,25 @@ export interface Dashboard {
   ordersToday: number;
   zeroStockProducts: number;
   usdRate: number | null;
+  unreadChats: number;
+}
+
+export type ChatStatus = 'OPEN' | 'CLOSED';
+
+export interface ChatSummary {
+  id: number;
+  visitorName: string | null;
+  status: ChatStatus;
+  lastMessageAt: string;
+  unread: number;
+  lastMessage: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  sender: 'VISITOR' | 'ADMIN';
+  body: string;
+  createdAt: string;
 }
 
 export interface Rates {
