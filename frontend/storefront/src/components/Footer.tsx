@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Logo from '@/components/Logo';
 import { serverGet } from '@/lib/api';
+import { getDict, type Locale } from '@/i18n/dictionaries';
 import { T } from '@/tokens';
 
 interface Contacts {
@@ -20,7 +21,8 @@ const MESSENGERS: { key: keyof Contacts; label: string; href: (v: string) => str
   { key: 'contact_instagram', label: 'Instagram', href: v => `https://instagram.com/${v.replace('@', '')}` },
 ];
 
-export default async function Footer() {
+export default async function Footer({ locale }: { locale: Locale }) {
+  const t = getDict(locale).footer;
   let contacts: Contacts = {};
   try {
     contacts = await serverGet<Contacts>('/api/public-settings');
@@ -38,24 +40,24 @@ export default async function Footer() {
         <div>
           <div style={{ marginBottom: 16 }}><Logo size={32} /></div>
           <p style={{ fontSize: 13.5, lineHeight: 1.6, maxWidth: 280, margin: 0 }}>
-            Запчасти для европейских и азиатских авто. Наличие на складе в Кишинёве, самовывоз и доставка по Молдове.
+{t.blurb}
           </p>
         </div>
         <div>
-          <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.16em', color: T.muted2, textTransform: 'uppercase', marginBottom: 14 }}>Каталог</div>
+          <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.16em', color: T.muted2, textTransform: 'uppercase', marginBottom: 14 }}>{t.catalog}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9, fontSize: 14 }}>
-            <Link href="/catalog" style={{ color: '#aab1bd', textDecoration: 'none' }}>Весь каталог</Link>
-            <Link href="/cart" style={{ color: '#aab1bd', textDecoration: 'none' }}>Корзина</Link>
+            <Link href={`/${locale}/catalog`} style={{ color: '#aab1bd', textDecoration: 'none' }}>{t.allCatalog}</Link>
+            <Link href={`/${locale}/cart`} style={{ color: '#aab1bd', textDecoration: 'none' }}>{t.cart}</Link>
           </div>
         </div>
         <div>
-          <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.16em', color: T.muted2, textTransform: 'uppercase', marginBottom: 14 }}>Часы работы</div>
+          <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.16em', color: T.muted2, textTransform: 'uppercase', marginBottom: 14 }}>{t.hours}</div>
           <div style={{ fontSize: 14, lineHeight: 1.9 }}>
-            Пн–Пт&nbsp;&nbsp;09:00–19:00<br />Сб&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10:00–16:00<br />Вс&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;выходной
+            {t.weekdays}&nbsp;&nbsp;09:00–19:00<br />{t.saturday}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10:00–16:00<br />{t.sunday}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{t.closed}
           </div>
         </div>
         <div>
-          <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.16em', color: T.muted2, textTransform: 'uppercase', marginBottom: 14 }}>Контакты</div>
+          <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.16em', color: T.muted2, textTransform: 'uppercase', marginBottom: 14 }}>{t.contacts}</div>
           <a href={`tel:${phone.replace(/[^+\d]/g, '')}`} style={{ color: '#fff', textDecoration: 'none', fontFamily: T.mono, fontWeight: 600, fontSize: 18, display: 'block', marginBottom: 10 }}>{phone}</a>
           <div style={{ fontSize: 13.5, lineHeight: 1.6 }}>
             {contacts.pickupAddress || 'мун. Кишинёв, ул. Каля Орхеюлуй 25'}<br />
@@ -76,7 +78,7 @@ export default async function Footer() {
       <div style={{ borderTop: `1px solid ${T.g700}` }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#6b7480', fontFamily: T.mono, letterSpacing: '.02em' }}>
           <span>© 2026 SACRAMENTO AUTO PARTS</span>
-          <span>Цены указаны в молдавских леях (MDL)</span>
+          <span>{t.pricesNote}</span>
         </div>
       </div>
     </footer>

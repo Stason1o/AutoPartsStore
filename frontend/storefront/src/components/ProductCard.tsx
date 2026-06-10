@@ -2,18 +2,22 @@
 import Link from 'next/link';
 import { fmt, photoUrl, type ProductListItem } from '@/lib/api';
 import { useStore } from '@/lib/store';
+import { useI18n } from '@/i18n/I18nProvider';
+import type { Dict } from '@/i18n/dictionaries';
 import { T } from '@/tokens';
 
-export function stockBadge(available: number) {
+export function stockBadge(available: number, t: Dict['product']) {
   return available > 0
-    ? { label: `В наличии: ${available} шт`, color: T.ok, bg: T.okSoft }
-    : { label: 'Нет в наличии', color: T.warn, bg: T.warnSoft };
+    ? { label: `${t.inStock} ${available} ${t.pcs}`, color: T.ok, bg: T.okSoft }
+    : { label: t.outOfStock, color: T.warn, bg: T.warnSoft };
 }
 
 export default function ProductCard({ product, fitsCar }: { product: ProductListItem; fitsCar?: boolean }) {
   const { addToCart, showToast } = useStore();
+  const { dict, lp } = useI18n();
+  const t = dict.product;
   const inStock = product.available > 0 && product.price != null;
-  const badge = stockBadge(product.available);
+  const badge = stockBadge(product.available, t);
 
   const add = () => {
     if (!inStock) return;
@@ -21,12 +25,12 @@ export default function ProductCard({ product, fitsCar }: { product: ProductList
       productId: product.id, slug: product.slug, sku: product.sku, name: product.name,
       brand: product.brand, price: product.price!, available: product.available,
     });
-    showToast(`Добавлено в корзину: ${product.name}`);
+    showToast(`${t.addedToCart} ${product.name}`);
   };
 
   return (
     <div style={{ background: T.paper, border: `1px solid ${T.line}`, borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <Link href={`/product/${product.slug}`} style={{ display: 'block', position: 'relative', textDecoration: 'none' }}>
+      <Link href={lp(`/product/${product.slug}`)} style={{ display: 'block', position: 'relative', textDecoration: 'none' }}>
         <div className={product.mainPhotoId ? undefined : 'placeholder-stripes'} style={{ height: 150, display: 'grid', placeItems: 'center', borderBottom: `1px solid ${T.line}`, overflow: 'hidden', background: product.mainPhotoId ? '#fff' : undefined }}>
           {product.mainPhotoId ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -43,20 +47,20 @@ export default function ProductCard({ product, fitsCar }: { product: ProductList
         {fitsCar && (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', background: T.okSoft, color: T.ok, borderRadius: 6, padding: '4px 8px', fontSize: 11.5, fontWeight: 700 }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><path d="m5 13 4 4L19 7" /></svg>
-            Подходит для вашего авто
+            {t.fitsYourCar}
           </span>
         )}
-        <Link href={`/product/${product.slug}`} style={{ textDecoration: 'none', fontSize: 14.5, fontWeight: 600, lineHeight: 1.35, color: T.ink, minHeight: 39 }}>
+        <Link href={lp(`/product/${product.slug}`)} style={{ textDecoration: 'none', fontSize: 14.5, fontWeight: 600, lineHeight: 1.35, color: T.ink, minHeight: 39 }}>
           {product.name}
         </Link>
-        <div style={{ fontFamily: T.mono, fontSize: 12, color: T.muted }}>арт. {product.sku}</div>
+        <div style={{ fontFamily: T.mono, fontSize: 12, color: T.muted }}>{t.sku} {product.sku}</div>
         <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8, paddingTop: 6 }}>
           <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 21, color: T.ink, whiteSpace: 'nowrap' }}>
             {product.price != null ? fmt(product.price) : '—'} <span style={{ fontSize: 13, color: T.muted, fontWeight: 500 }}>MDL</span>
           </div>
         </div>
         <button onClick={add} disabled={!inStock} style={{ marginTop: 2, width: '100%', height: 42, background: inStock ? T.accent : T.paper3, color: inStock ? '#fff' : T.muted, border: 0, borderRadius: 9, fontWeight: 700, fontSize: 13.5, cursor: inStock ? 'pointer' : 'default' }}>
-          {inStock ? 'В корзину' : 'Нет в наличии'}
+          {inStock ? t.addToCart : t.outOfStock}
         </button>
       </div>
     </div>

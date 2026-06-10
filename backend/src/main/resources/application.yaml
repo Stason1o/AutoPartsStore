@@ -20,6 +20,11 @@ spring:
 
 server:
   port: ${SERVER_PORT:8090}
+  servlet:
+    session:
+      timeout: 24h          # сессия админа живёт сутки
+      cookie:
+        max-age: 24h        # и переживает закрытие браузера
 
 management:
   endpoints:

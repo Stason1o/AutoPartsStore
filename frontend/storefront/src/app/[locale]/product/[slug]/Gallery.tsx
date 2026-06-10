@@ -1,9 +1,12 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { photoUrl } from '@/lib/api';
+import { useI18n } from '@/i18n/I18nProvider';
 import { T } from '@/tokens';
 
 export default function Gallery({ photoIds, name }: { photoIds: number[]; name: string }) {
+  const { dict } = useI18n();
+  const t = dict.product;
   const [active, setActive] = useState(photoIds[0] ?? null);
   const [lightbox, setLightbox] = useState(false);
 
@@ -36,13 +39,13 @@ export default function Gallery({ photoIds, name }: { photoIds: number[]; name: 
         onClick={() => active && setLightbox(true)}
         className={active ? undefined : 'placeholder-stripes'}
         style={{ width: '100%', height: 380, borderRadius: 16, display: 'grid', placeItems: 'center', border: `1px solid ${T.line}`, overflow: 'hidden', cursor: active ? 'zoom-in' : 'default', padding: 0, background: active ? '#fff' : undefined }}
-        aria-label="Открыть фото в полном размере"
+        aria-label={t.openPhoto}
       >
         {active ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photoUrl(active)} alt={name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
         ) : (
-          <span style={{ fontFamily: T.mono, fontSize: 13, letterSpacing: '.12em', color: T.muted2 }}>ФОТО СКОРО ПОЯВИТСЯ</span>
+          <span style={{ fontFamily: T.mono, fontSize: 13, letterSpacing: '.12em', color: T.muted2 }}>{t.photoSoon}</span>
         )}
       </button>
 

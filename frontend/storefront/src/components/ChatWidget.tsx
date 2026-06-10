@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { clientFetch } from '@/lib/api';
+import { useI18n } from '@/i18n/I18nProvider';
 import { T } from '@/tokens';
 
 interface ChatMessage {
@@ -41,6 +42,8 @@ function ding() {
 }
 
 export default function ChatWidget() {
+  const { dict } = useI18n();
+  const t = dict.chat;
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [unread, setUnread] = useState(0);
@@ -112,7 +115,7 @@ export default function ChatWidget() {
       setText('');
       applyReply(reply, false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Не удалось отправить');
+      setError(e instanceof Error ? e.message : t.sendFailed);
     } finally {
       setSending(false);
     }
@@ -125,7 +128,7 @@ export default function ChatWidget() {
       {/* плавающая кнопка */}
       <button
         onClick={() => setOpen(!open)}
-        aria-label="Чат с менеджером"
+        aria-label={t.open}
         style={{ position: 'fixed', right: 22, bottom: 22, zIndex: 95, width: 58, height: 58, borderRadius: 18, background: open ? T.g800 : T.accent, color: '#fff', border: 0, cursor: 'pointer', boxShadow: '0 10px 28px rgba(43,108,255,.4)', display: 'grid', placeItems: 'center', transition: 'background .15s' }}
       >
         {open ? (
@@ -142,17 +145,17 @@ export default function ChatWidget() {
       {open && (
         <div style={{ position: 'fixed', right: 22, bottom: 92, zIndex: 95, width: 360, maxWidth: 'calc(100vw - 44px)', height: 480, maxHeight: 'calc(100vh - 130px)', background: T.paper, border: `1px solid ${T.line}`, borderRadius: 16, boxShadow: '0 24px 60px rgba(13,15,18,.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'scIn .2s ease both' }}>
           <div style={{ background: T.g800, color: '#fff', padding: '14px 18px' }}>
-            <div style={{ fontWeight: 700, fontSize: 15 }}>Чат с менеджером</div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>{t.title}</div>
             <div style={{ fontSize: 12, color: '#aab1bd', marginTop: 2, display: 'flex', alignItems: 'center', gap: 7 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: T.ok, animation: 'pulseDot 2.4s infinite' }} />
-              Отвечаем Пн–Сб 09:00–19:00
+              {t.online}
             </div>
           </div>
 
           <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 10, background: T.paper2 }}>
             {firstMessage && (
               <div style={{ background: T.paper, border: `1px solid ${T.line}`, borderRadius: 12, padding: '12px 14px', fontSize: 13.5, color: T.muted, lineHeight: 1.5 }}>
-                Здравствуйте! Напишите вопрос — подскажем по наличию, подбору и ценам.
+                {t.greeting}
               </div>
             )}
             {messages.map(m => (
@@ -174,7 +177,7 @@ export default function ChatWidget() {
               <input
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder="Ваше имя (необязательно)"
+                placeholder={t.namePlaceholder}
                 style={{ width: '100%', height: 38, border: `1px solid ${T.line}`, borderRadius: 9, padding: '0 12px', fontSize: 13.5, outline: 'none', marginBottom: 8, color: T.ink }}
               />
             )}
@@ -183,7 +186,7 @@ export default function ChatWidget() {
                 value={text}
                 onChange={e => setText(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-                placeholder="Напишите сообщение…"
+                placeholder={t.messagePlaceholder}
                 rows={1}
                 style={{ flex: 1, border: `1px solid ${T.line}`, borderRadius: 9, padding: '10px 12px', fontSize: 14, outline: 'none', resize: 'none', fontFamily: 'inherit', color: T.ink, maxHeight: 90 }}
               />

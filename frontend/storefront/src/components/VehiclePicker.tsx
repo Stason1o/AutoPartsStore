@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { clientFetch, type VehicleCandidate } from '@/lib/api';
 import { useStore } from '@/lib/store';
+import { useI18n } from '@/i18n/I18nProvider';
 import { T } from '@/tokens';
 
 const selectStyle: React.CSSProperties = {
@@ -13,6 +14,8 @@ const selectStyle: React.CSSProperties = {
 /** Подбор «марка → модель → год» в hero-блоке главной. */
 export default function VehiclePicker() {
   const { car, setCar, showToast } = useStore();
+  const { dict, lp } = useI18n();
+  const t = dict.home;
   const router = useRouter();
 
   const [makes, setMakes] = useState<string[]>([]);
@@ -55,7 +58,7 @@ export default function VehiclePicker() {
       ?? vehicles.find(v => v.model === model);
     if (!vehicle) return;
     setCar({ vehicleId: vehicle.id, label: `${make} ${model}`, sub: String(y) });
-    showToast(`Автомобиль сохранён: ${make} ${model}`);
+    showToast(`${t.carSaved} ${make} ${model}`);
   };
 
   if (car) {
@@ -67,15 +70,15 @@ export default function VehiclePicker() {
           </span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 18, color: '#fff' }}>{car.label} · {car.sub}</div>
-            <div style={{ fontSize: 13.5, color: '#aeb6c2' }}>Каталог отфильтрован под ваш автомобиль</div>
+            <div style={{ fontSize: 13.5, color: '#aeb6c2' }}>{t.catalogFiltered}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
-          <button onClick={() => router.push(`/catalog?vehicleId=${car.vehicleId}`)} style={{ background: T.accent, color: '#fff', border: 0, borderRadius: 10, padding: '14px 26px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
-            Перейти в каталог →
+          <button onClick={() => router.push(lp(`/catalog?vehicleId=${car.vehicleId}`))} style={{ background: T.accent, color: '#fff', border: 0, borderRadius: 10, padding: '14px 26px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+            {t.goCatalog}
           </button>
           <button onClick={() => setCar(null)} style={{ background: 'transparent', border: `1px solid ${T.lineD}`, color: '#cfd4dc', borderRadius: 10, padding: '14px 22px', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
-            Сменить авто
+            {t.changeCar}
           </button>
         </div>
       </div>
@@ -86,27 +89,27 @@ export default function VehiclePicker() {
   return (
     <div style={{ background: 'rgba(255,255,255,.04)', border: `1px solid ${T.lineD}`, borderRadius: 14, padding: 22, maxWidth: 620 }}>
       <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.16em', color: T.muted2, textTransform: 'uppercase', marginBottom: 14 }}>
-        Марка → модель → год выпуска
+        {t.pickerLabel}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 120px', gap: 10 }}>
         <select value={make} onChange={e => { setMake(e.target.value); setModel(''); setYear(''); }} style={selectStyle}>
-          <option value="">Марка</option>
+          <option value="">{t.make}</option>
           {makes.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
         <select value={model} onChange={e => { setModel(e.target.value); setYear(''); }} disabled={!make} style={{ ...selectStyle, opacity: make ? 1 : 0.45 }}>
-          <option value="">Модель</option>
+          <option value="">{t.model}</option>
           {models.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
         <select value={year} onChange={e => setYear(e.target.value)} disabled={!model} style={{ ...selectStyle, padding: '0 12px', opacity: model ? 1 : 0.45 }}>
-          <option value="">Год</option>
+          <option value="">{t.year}</option>
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
       </div>
       <button onClick={apply} disabled={!canApply} style={{ marginTop: 14, width: '100%', background: canApply ? T.accent : T.g700, color: '#fff', border: 0, borderRadius: 10, height: 54, fontWeight: 700, fontSize: 16, cursor: canApply ? 'pointer' : 'default' }}>
-        Подобрать запчасти →
+        {t.pickParts}
       </button>
       <div style={{ marginTop: 14, fontSize: 13, color: '#8b929d' }}>
-        Не нашли модель? Позвоните <a href="tel:+37322001122" style={{ color: '#9cc0ff', textDecoration: 'none', fontFamily: T.mono }}>+373 22 00 11 22</a> — подберём по телефону.
+        {t.notFoundModel} <a href="tel:+37322001122" style={{ color: '#9cc0ff', textDecoration: 'none', fontFamily: T.mono }}>+373 22 00 11 22</a> {t.helpByPhone}
       </div>
     </div>
   );
