@@ -5,8 +5,16 @@
 | Часть | Стек | Статус |
 |---|---|---|
 | [backend/](backend/) | Java 25, Spring Boot 4, PostgreSQL 17, Flyway | ✅ готов |
-| frontend/storefront | Next.js + MUI (SSR, Vercel) | ⏳ после дизайна |
-| frontend/admin | React + Vite + MUI (SPA, VPS) | ⏳ после дизайна |
+| [frontend/storefront/](frontend/storefront/) | Next.js + MUI (SSR, Vercel) | ✅ готова |
+| [frontend/admin/](frontend/admin/) | React + Vite + MUI (SPA, VPS) | ✅ готова |
+
+## Запуск всего локально
+
+```bash
+cd backend && docker compose -f compose.dev.yaml up -d && mvn spring-boot:run  # API :8090
+cd frontend/storefront && npm run dev    # витрина :3000
+cd frontend/admin && npm run dev         # админка :5173 (логин admin / sacramento2026)
+```
 
 ## Документация
 
