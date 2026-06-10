@@ -3,6 +3,7 @@ package md.sacramento.catalog;
 import md.sacramento.common.NotFoundException;
 import md.sacramento.common.SlugUtil;
 import md.sacramento.media.ProductPhotoRepository;
+import md.sacramento.pricing.PricingService;
 import md.sacramento.vehicles.ProductVehicle;
 import md.sacramento.vehicles.ProductVehicleRepository;
 import md.sacramento.vehicles.Vehicle;
@@ -25,15 +26,17 @@ public class ProductService {
     private final ProductPhotoRepository photos;
     private final ProductVehicleRepository productVehicles;
     private final VehicleRepository vehicles;
+    private final PricingService pricingService;
 
     public ProductService(ProductRepository products, CategoryRepository categories,
                           ProductPhotoRepository photos, ProductVehicleRepository productVehicles,
-                          VehicleRepository vehicles) {
+                          VehicleRepository vehicles, PricingService pricingService) {
         this.products = products;
         this.categories = categories;
         this.photos = photos;
         this.productVehicles = productVehicles;
         this.vehicles = vehicles;
+        this.pricingService = pricingService;
     }
 
     @Transactional(readOnly = true)
@@ -131,6 +134,10 @@ public class ProductService {
         p.setRetailPriceManual(Boolean.TRUE.equals(r.retailPriceManual()));
         if (p.isRetailPriceManual() || r.retailPrice() != null) {
             p.setRetailPrice(r.retailPrice());
+        }
+        if (!p.isRetailPriceManual()) {
+            // автоцена: закупка × курс × наценка; если данных нет — оставляем как было
+            pricingService.priceFor(p).ifPresent(p::setRetailPrice);
         }
         p.setWholesalePrice(r.wholesalePrice());
         if (r.stockQty() != null) {
