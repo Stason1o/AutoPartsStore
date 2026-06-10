@@ -31,7 +31,7 @@ public final class ProductDtos {
                                int stockQty, int reservedQty, String shelf, String adminNote,
                                boolean active, List<String> oemNumbers) {
 
-        static AdminProduct of(Product p) {
+        public static AdminProduct of(Product p) {
             return new AdminProduct(p.getId(), p.getSku(), p.getName(), p.getSlug(), p.getBrand(),
                     p.getDescription(), p.getCategory() != null ? p.getCategory().getId() : null,
                     p.getPurchasePrice(), p.getPurchaseCurrency(),

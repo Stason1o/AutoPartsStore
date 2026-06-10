@@ -27,6 +27,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
     }
 
+    @ExceptionHandler(RateLimiter.TooManyRequestsException.class)
+    ResponseEntity<Map<String, String>> tooManyRequests(RateLimiter.TooManyRequestsException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("error", e.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<Map<String, String>> validation(MethodArgumentNotValidException e) {
         String details = e.getBindingResult().getFieldErrors().stream()
