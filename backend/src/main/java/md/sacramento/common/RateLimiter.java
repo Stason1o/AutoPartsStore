@@ -19,6 +19,12 @@ public class RateLimiter {
     private record Window(long windowStartMillis, int count) {
     }
 
+    /** IP клиента с учётом прокси (nginx ставит X-Forwarded-For). */
+    public static String clientIp(jakarta.servlet.http.HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        return forwarded != null ? forwarded.split(",")[0].trim() : request.getRemoteAddr();
+    }
+
     private final Map<String, Window> windows = new ConcurrentHashMap<>();
 
     /** Бросает 429, если по ключу больше limit запросов за window. */

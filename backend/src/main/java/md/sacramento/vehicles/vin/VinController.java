@@ -28,12 +28,7 @@ public class VinController {
     @PostMapping("/decode")
     public VinService.DecodeResult decode(@RequestBody DecodeRequest body,
                                           HttpServletRequest request) {
-        rateLimiter.check("vin:" + clientIp(request), 10, Duration.ofMinutes(1));
+        rateLimiter.check("vin:" + RateLimiter.clientIp(request), 10, Duration.ofMinutes(1));
         return service.decode(body.vin());
-    }
-
-    static String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        return forwarded != null ? forwarded.split(",")[0].trim() : request.getRemoteAddr();
     }
 }
