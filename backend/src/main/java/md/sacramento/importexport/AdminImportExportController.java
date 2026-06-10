@@ -21,10 +21,13 @@ public class AdminImportExportController {
 
     private final SnapshotService snapshotService;
     private final ImportService importService;
+    private final md.sacramento.importexport.legacy.LegacyXlsImporter legacyImporter;
 
-    public AdminImportExportController(SnapshotService snapshotService, ImportService importService) {
+    public AdminImportExportController(SnapshotService snapshotService, ImportService importService,
+                                       md.sacramento.importexport.legacy.LegacyXlsImporter legacyImporter) {
         this.snapshotService = snapshotService;
         this.importService = importService;
+        this.legacyImporter = legacyImporter;
     }
 
     @GetMapping("/export/snapshots")
@@ -66,5 +69,15 @@ public class AdminImportExportController {
     @PostMapping("/import/{token}/confirm")
     public ImportService.Report confirm(@PathVariable String token) {
         return importService.confirm(token);
+    }
+
+    /** Одноразовый импорт исходного учётного .xls (лист «офис»). */
+    @PostMapping("/import/legacy")
+    public ImportService.Preview uploadLegacy(@RequestParam("file") MultipartFile file) {
+        try {
+            return legacyImporter.preview(file.getBytes());
+        } catch (IOException e) {
+            throw new UncheckedIOException("Не удалось прочитать файл", e);
+        }
     }
 }

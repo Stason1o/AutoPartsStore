@@ -48,7 +48,7 @@ public class ImportService {
                             BigDecimal markupPercent, BigDecimal retailPrice, boolean retailManual,
                             BigDecimal wholesalePrice, int stockQty, String shelf,
                             List<CatalogFileFormat.VehicleSpec> vehicles, boolean active,
-                            String adminNote) {
+                            String adminNote, boolean autoMatchedVehicles) {
     }
 
     public record Preview(String token, int toCreate, int toUpdate, List<RowError> errors) {
@@ -110,6 +110,12 @@ public class ImportService {
             }
         }
 
+        return registerPending(rows, errors);
+    }
+
+    /** Регистрация разобранных строк (используется и обычным, и legacy-импортом). */
+    @Transactional(readOnly = true)
+    public Preview registerPending(List<ParsedRow> rows, List<RowError> errors) {
         int toUpdate = (int) rows.stream().filter(r -> products.existsBySku(r.sku())).count();
         String token = UUID.randomUUID().toString();
         pending.put(token, new PendingImport(rows, Instant.now().plus(PREVIEW_TTL)));
@@ -139,7 +145,7 @@ public class ImportService {
             }
             applyRow(product, row);
             Product saved = products.save(product);
-            applyVehicles(saved, row.vehicles());
+            applyVehicles(saved, row.vehicles(), row.autoMatchedVehicles());
         }
         pricingService.recalculateAll();
         return new Report(created, updated);
@@ -167,7 +173,8 @@ public class ImportService {
         row.oemNumbers().stream().map(OemNumber::new).distinct().forEach(p.getOemNumbers()::add);
     }
 
-    private void applyVehicles(Product product, List<CatalogFileFormat.VehicleSpec> specs) {
+    private void applyVehicles(Product product, List<CatalogFileFormat.VehicleSpec> specs,
+                               boolean autoMatched) {
         productVehicles.deleteByIdProductId(product.getId());
         for (CatalogFileFormat.VehicleSpec spec : specs) {
             Vehicle vehicle = vehicles
@@ -182,7 +189,7 @@ public class ImportService {
                         v.setEngine(spec.engine());
                         return vehicles.save(v);
                     });
-            productVehicles.save(new ProductVehicle(product.getId(), vehicle.getId(), false));
+            productVehicles.save(new ProductVehicle(product.getId(), vehicle.getId(), autoMatched));
         }
     }
 
@@ -225,7 +232,8 @@ public class ImportService {
                 cell(raw, header, "Полка"),
                 vehicleSpecs,
                 !"0".equals(cell(raw, header, "Активен").trim()),
-                cell(raw, header, "Заметка"));
+                cell(raw, header, "Заметка"),
+                false);
     }
 
     private Map<String, Integer> headerIndex(String[] headerRow) {
