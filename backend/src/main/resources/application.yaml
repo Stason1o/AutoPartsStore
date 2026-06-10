@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: sacramento-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5544/sacramento}
+    username: ${DB_USER:sacramento}
+    password: ${DB_PASSWORD:sacramento}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 60MB
+
+server:
+  port: ${SERVER_PORT:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
+  timezone: Europe/Chisinau

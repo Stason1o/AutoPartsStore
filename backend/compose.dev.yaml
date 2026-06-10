@@ -1,0 +1,16 @@
+# Только для локальной разработки. На VPS PostgreSQL ставится нативно (см. docs/ops/deploy.md).
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: sacramento-postgres
+    environment:
+      POSTGRES_DB: sacramento
+      POSTGRES_USER: sacramento
+      POSTGRES_PASSWORD: sacramento
+    ports:
+      - "5544:5432"
+    volumes:
+      - sacramento_pgdata:/var/lib/postgresql/data
+
+volumes:
+  sacramento_pgdata:
