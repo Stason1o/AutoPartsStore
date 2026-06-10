@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { serverGet, type CategoryNode } from '@/lib/api';
 import VehiclePicker from '@/components/VehiclePicker';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 const ADVANTAGES = [
   { title: 'В наличии на складе', text: 'Весь каталог — реальные остатки склада в Кишинёве, без «под заказ из Европы».' },

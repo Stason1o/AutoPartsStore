@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
 import { fmt } from '@/lib/api';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 export default function CartPage() {
   const { cart, setQty, removeItem, subtotal } = useStore();

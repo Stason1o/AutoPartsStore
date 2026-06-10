@@ -135,6 +135,14 @@ public class SnapshotService {
         }
     }
 
+    @Transactional
+    public void delete(Long id) {
+        if (!snapshots.existsById(id)) {
+            throw new NotFoundException("Снэпшот не найден: " + id);
+        }
+        snapshots.deleteById(id);
+    }
+
     @Transactional(readOnly = true)
     public List<SnapshotRepository.SnapshotMeta> history(int limit) {
         return snapshots.findAllByOrderByCreatedAtDesc(PageRequest.of(0, Math.clamp(limit, 1, 100)));

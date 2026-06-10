@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { serverGet, type CategoryNode, type Page, type ProductListItem } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<CatalogParams> }) {
   const params = await searchParams;

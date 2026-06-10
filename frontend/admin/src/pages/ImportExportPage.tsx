@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
+import Dialog from '@mui/material/Dialog';
 import { api } from '../api/client';
 import type { ImportPreview, ImportReport, SnapshotMeta } from '../api/types';
 import { C, MONO } from '../theme';
@@ -20,6 +21,7 @@ export default function ImportExportPage() {
   const legacyRef = useRef<HTMLInputElement>(null);
   const [stage, setStage] = useState<Stage>({ kind: 'idle' });
   const [dragOver, setDragOver] = useState(false);
+  const [deleteSnap, setDeleteSnap] = useState<SnapshotMeta | null>(null);
 
   const snapshots = useQuery({
     queryKey: ['snapshots'],
@@ -33,6 +35,19 @@ export default function ImportExportPage() {
       toast('Снэпшот сформирован — файл доступен в истории');
     },
     onError: (e) => toast(e.message, 'error'),
+  });
+
+  const removeSnapshot = useMutation({
+    mutationFn: (id: number) => api.delete(`/api/admin/export/snapshots/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['snapshots'] });
+      setDeleteSnap(null);
+      toast('Снэпшот удалён');
+    },
+    onError: (e) => {
+      setDeleteSnap(null);
+      toast(e.message, 'error');
+    },
   });
 
   const upload = useMutation({
@@ -99,7 +114,7 @@ export default function ImportExportPage() {
           </Box>
         </Box>
         <TableHead
-          gridTemplateColumns="1fr 110px 80px 110px"
+          gridTemplateColumns="1fr 110px 70px 138px"
           columns={[
             'Дата',
             'Триггер',
@@ -112,7 +127,7 @@ export default function ImportExportPage() {
             key={s.id}
             sx={{
               display: 'grid',
-              gridTemplateColumns: '1fr 110px 80px 110px',
+              gridTemplateColumns: '1fr 110px 70px 138px',
               gap: '10px',
               p: '12px 20px',
               borderBottom: `1px solid ${C.line2}`,
@@ -145,6 +160,28 @@ export default function ImportExportPage() {
                   {fmt.toUpperCase()}
                 </Box>
               ))}
+              <Box
+                component="button"
+                title="Удалить снэпшот"
+                onClick={() => setDeleteSnap(s)}
+                sx={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: '6px',
+                  background: 'transparent',
+                  border: 0,
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: 'pointer',
+                  color: C.muted2,
+                  p: 0,
+                  '&:hover': { color: C.warn, background: C.warnSoft },
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </Box>
             </Box>
           </Box>
         ))}
@@ -353,6 +390,55 @@ export default function ImportExportPage() {
           )}
         </Box>
       </Card>
+
+      {/* snapshot delete confirm */}
+      <Dialog open={deleteSnap !== null} onClose={() => setDeleteSnap(null)} PaperProps={{ sx: { borderRadius: '16px', p: '28px', maxWidth: 420 } }}>
+        <Box sx={{ fontSize: 18, fontWeight: 700, mb: '8px' }}>Удалить снэпшот?</Box>
+        <Box sx={{ fontSize: '13.5px', color: C.muted, lineHeight: 1.6, mb: '24px' }}>
+          Снэпшот от <Box component="strong" sx={{ color: C.ink }}>{deleteSnap ? fmtDateTime(deleteSnap.createdAt) : ''}</Box>{' '}
+          ({deleteSnap?.productCount} строк) будет удалён вместе с файлами. Действие необратимо.
+        </Box>
+        <Box sx={{ display: 'flex', gap: '10px' }}>
+          <Box
+            component="button"
+            onClick={() => setDeleteSnap(null)}
+            sx={{
+              flex: 1,
+              background: C.paper2,
+              border: `1px solid ${C.line}`,
+              color: C.ink2,
+              borderRadius: '10px',
+              p: '12px',
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Отмена
+          </Box>
+          <Box
+            component="button"
+            disabled={removeSnapshot.isPending}
+            onClick={() => deleteSnap && removeSnapshot.mutate(deleteSnap.id)}
+            sx={{
+              flex: 1,
+              background: C.warn,
+              color: '#fff',
+              border: 0,
+              borderRadius: '10px',
+              p: '12px',
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              '&:disabled': { opacity: 0.6 },
+            }}
+          >
+            {removeSnapshot.isPending ? 'Удаление…' : 'Удалить'}
+          </Box>
+        </Box>
+      </Dialog>
     </Box>
   );
 }

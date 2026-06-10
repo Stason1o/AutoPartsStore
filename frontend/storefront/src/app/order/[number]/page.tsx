@@ -1,7 +1,7 @@
 'use client';
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 interface LastOrder {
   number: string;

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { clientFetch, type VehicleCandidate } from '@/lib/api';
 import { useStore } from '@/lib/store';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 const selectStyle: React.CSSProperties = {
   height: 52, background: T.g700, border: `1px solid ${T.lineD}`, borderRadius: 10,

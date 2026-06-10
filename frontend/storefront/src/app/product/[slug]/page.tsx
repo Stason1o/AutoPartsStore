@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { serverGet, type ProductDetail } from '@/lib/api';
 import ProductActions from './ProductActions';
 import Gallery from './Gallery';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 async function loadProduct(slug: string): Promise<ProductDetail | null> {
   try {

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { fmt, type ProductDetail } from '@/lib/api';
 import { useStore } from '@/lib/store';
 import { stockBadge } from '@/components/ProductCard';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 export default function ProductActions({ product: p }: { product: ProductDetail }) {
   const { addToCart, showToast, car } = useStore();

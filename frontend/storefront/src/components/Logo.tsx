@@ -1,4 +1,4 @@
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 /** Шестигранник с «S» — фирменный знак Sacramento. */
 export default function Logo({ size = 38, compact = false }: { size?: number; compact?: boolean }) {

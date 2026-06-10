@@ -1,6 +1,6 @@
 'use client';
 import { useStore } from '@/lib/store';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 export default function Toast() {
   const { toast } = useStore();

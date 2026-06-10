@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { clientFetch, fmt } from '@/lib/api';
 import { useStore } from '@/lib/store';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 type Delivery = 'COURIER' | 'PICKUP';
 type Payment = 'CASH_COURIER' | 'CARD_PICKUP' | 'CASH_PICKUP';

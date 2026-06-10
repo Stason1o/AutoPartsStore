@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Logo from '@/components/Logo';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 export default function Footer() {
   return (

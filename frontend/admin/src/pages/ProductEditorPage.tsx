@@ -619,16 +619,24 @@ function PhotosTab({ productId }: { productId: number }) {
   });
 
   const upload = useMutation({
-    mutationFn: (file: File) => {
-      const fd = new FormData();
-      fd.append('file', file);
-      return api.post(`/api/admin/products/${productId}/photos`, fd);
+    mutationFn: async (files: File[]) => {
+      // Загружаем последовательно — по одному файлу за запрос.
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append('file', file);
+        await api.post(`/api/admin/products/${productId}/photos`, fd);
+      }
+      return files.length;
     },
-    onSuccess: () => {
+    onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ['photos', productId] });
-      toast('Фото загружено');
+      toast(count === 1 ? 'Фото загружено' : `Загружено ${count} фото`);
     },
-    onError: (e) => toast(e.message, 'error'),
+    onError: (e) => {
+      // Часть файлов могла успеть загрузиться — обновляем список.
+      queryClient.invalidateQueries({ queryKey: ['photos', productId] });
+      toast(e.message, 'error');
+    },
   });
 
   const setMain = useMutation({
@@ -647,13 +655,23 @@ function PhotosTab({ productId }: { productId: number }) {
   });
 
   const onFiles = (files: FileList | null) => {
-    if (!files) return;
-    Array.from(files).forEach((f) => upload.mutate(f));
+    if (!files || files.length === 0) return;
+    upload.mutate(Array.from(files));
   };
 
   return (
     <Box sx={{ maxWidth: 680, animation: 'aIn .2s ease both' }}>
-      <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => onFiles(e.target.files)} />
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        onChange={(e) => {
+          onFiles(e.target.files);
+          e.target.value = ''; // повторный выбор тех же файлов снова вызовет onChange
+        }}
+      />
       <Box
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => {

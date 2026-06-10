@@ -22,6 +22,7 @@ function NavIcon({ paths, size = 18 }: { paths: string[]; size?: number }) {
 const NAV = [
   { to: '/', label: 'Сводка', match: (p: string) => p === '/', icon: ['M3 13h8V3H3zM13 21h8V11h-8zM13 3v6h8V3zM3 21h8v-6H3z'] },
   { to: '/products', label: 'Товары', match: (p: string) => p.startsWith('/products'), icon: ['M21 8 12 3 3 8v8l9 5 9-5z', 'M3 8l9 5 9-5M12 13v8'] },
+  { to: '/categories', label: 'Категории', match: (p: string) => p.startsWith('/categories'), icon: ['M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'] },
   { to: '/orders', label: 'Заказы', match: (p: string) => p.startsWith('/orders'), badge: true, icon: ['M9 4H5a2 2 0 0 0-2 2v14l3-2 3 2 3-2 3 2V6a2 2 0 0 0-2-2h-4', 'M9 8h6M9 12h6M9 16h4'] },
   { to: '/rates', label: 'Курс и цены', match: (p: string) => p.startsWith('/rates'), icon: ['M12 1v22', 'M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'] },
   { to: '/import-export', label: 'Импорт / экспорт', match: (p: string) => p.startsWith('/import-export'), icon: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M7 10l5 5 5-5', 'M12 15V3'] },
@@ -34,6 +35,7 @@ function pageTitle(path: string): string {
   if (path === '/products/new') return 'Новый товар';
   if (/^\/products\/\d+/.test(path)) return 'Редактор товара';
   if (path.startsWith('/products')) return 'Товары';
+  if (path.startsWith('/categories')) return 'Категории';
   if (/^\/orders\/\d+/.test(path)) return 'Карточка заказа';
   if (path.startsWith('/orders')) return 'Заказы';
   if (path.startsWith('/rates')) return 'Курс и цены';

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { fmt, photoUrl, type ProductListItem } from '@/lib/api';
 import { useStore } from '@/lib/store';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 export function stockBadge(available: number) {
   return available > 0
@@ -27,10 +27,10 @@ export default function ProductCard({ product, fitsCar }: { product: ProductList
   return (
     <div style={{ background: T.paper, border: `1px solid ${T.line}`, borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <Link href={`/product/${product.slug}`} style={{ display: 'block', position: 'relative', textDecoration: 'none' }}>
-        <div className="placeholder-stripes" style={{ height: 150, display: 'grid', placeItems: 'center', borderBottom: `1px solid ${T.line}`, overflow: 'hidden' }}>
+        <div className={product.mainPhotoId ? undefined : 'placeholder-stripes'} style={{ height: 150, display: 'grid', placeItems: 'center', borderBottom: `1px solid ${T.line}`, overflow: 'hidden', background: product.mainPhotoId ? '#fff' : undefined }}>
           {product.mainPhotoId ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={photoUrl(product.mainPhotoId, true)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={photoUrl(product.mainPhotoId, true)} alt={product.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
           ) : (
             <span style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: '.1em', color: T.muted2 }}>ФОТО</span>
           )}

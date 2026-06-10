@@ -47,6 +47,11 @@ public class AdminImportExportController {
         };
     }
 
+    @org.springframework.web.bind.annotation.DeleteMapping("/export/snapshots/{id}")
+    public void deleteSnapshot(@PathVariable Long id) {
+        snapshotService.delete(id);
+    }
+
     @GetMapping("/export/snapshots/{id}/{format}")
     public ResponseEntity<byte[]> download(@PathVariable Long id, @PathVariable String format) {
         SnapshotService.FileContent file = snapshotService.download(id, "xlsx".equals(format));

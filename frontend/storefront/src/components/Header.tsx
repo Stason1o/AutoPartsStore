@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Logo from '@/components/Logo';
 import { useStore } from '@/lib/store';
-import { T } from '@/theme';
+import { T } from '@/tokens';
 
 export default function Header() {
   const { cartCount, car, setCar } = useStore();
