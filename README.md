@@ -11,10 +11,20 @@
 ## Запуск всего локально
 
 ```bash
-cd backend && docker compose -f compose.dev.yaml up -d && mvn spring-boot:run  # API :8090
-cd frontend/storefront && npm run dev    # витрина :3000
-cd frontend/admin && npm run dev         # админка :5173 (логин admin / sacramento2026)
+./scripts/start-local.sh   # витрина :3030 · админка :5180 · API :8090 · Postgres :5544 (Docker)
+./scripts/stop-local.sh    # остановить всё
 ```
+Логин в админку: `admin / sacramento2026` (сменить после первого входа).
+
+## Деплой на сервер (без Docker, GraalVM native)
+
+```bash
+./scripts/build-release.sh                      # собрать релиз (или `jar` — быстрый фолбэк)
+scp release/sacramento-release.tar.gz root@IP:/root/
+ssh root@IP 'tar xzf sacramento-release.tar.gz && cd sacramento && ./install.sh sacramento.md'
+```
+
+Полное руководство с диаграммами: **[docs/РУКОВОДСТВО.md](docs/РУКОВОДСТВО.md)**
 
 ## Документация
 

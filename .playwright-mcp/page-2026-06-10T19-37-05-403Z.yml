@@ -1,0 +1,20 @@
+- generic [ref=e4]:
+  - heading "Autentificare" [level=5] [ref=e5]
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic:
+        - text: Utilizator
+        - generic: "*"
+      - generic [ref=e8]:
+        - textbox "Utilizator" [ref=e9]
+        - group:
+          - generic: Utilizator *
+    - generic [ref=e10]:
+      - generic:
+        - text: Parolă
+        - generic: "*"
+      - generic [ref=e11]:
+        - textbox "Parolă" [ref=e12]
+        - group:
+          - generic: Parolă *
+    - button "Intră" [ref=e13] [cursor=pointer]

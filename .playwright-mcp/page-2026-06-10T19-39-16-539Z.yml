@@ -1,0 +1,108 @@
+- generic [ref=e25]:
+  - complementary [ref=e26]:
+    - generic [ref=e27]:
+      - generic [ref=e31]: S
+      - generic [ref=e32]:
+        - generic [ref=e33]: SACRAMENTO
+        - generic [ref=e34]: ADMIN PANEL
+    - navigation [ref=e35]:
+      - button "Сводка" [ref=e36] [cursor=pointer]:
+        - img [ref=e38]
+        - generic [ref=e40]: Сводка
+      - button "Товары" [ref=e41] [cursor=pointer]:
+        - img [ref=e43]
+        - generic [ref=e46]: Товары
+      - button "Заказы 2" [ref=e47] [cursor=pointer]:
+        - img [ref=e49]
+        - generic [ref=e52]: Заказы
+        - generic [ref=e53]: "2"
+      - button "Курс и цены" [ref=e54] [cursor=pointer]:
+        - img [ref=e56]
+        - generic [ref=e58]: Курс и цены
+      - button "Импорт / экспорт" [ref=e59] [cursor=pointer]:
+        - img [ref=e61]
+        - generic [ref=e64]: Импорт / экспорт
+      - button "Применимость" [ref=e65] [cursor=pointer]:
+        - img [ref=e67]
+        - generic [ref=e70]: Применимость
+      - button "Настройки" [ref=e71] [cursor=pointer]:
+        - img [ref=e73]
+        - generic [ref=e76]: Настройки
+    - generic [ref=e77]:
+      - generic [ref=e78]: AD
+      - generic [ref=e79]:
+        - generic [ref=e80]: Администратор
+        - generic [ref=e81]: admin
+      - button "Выйти" [ref=e82] [cursor=pointer]:
+        - img [ref=e83]
+  - generic [ref=e86]:
+    - banner [ref=e87]:
+      - generic [ref=e88]:
+        - heading "Сводка" [level=1] [ref=e89]
+        - generic [ref=e90]:
+          - img [ref=e91]
+          - textbox "Поиск по артикулу, названию, бренду…" [ref=e95]
+        - generic [ref=e96]:
+          - generic [ref=e97] [cursor=pointer]:
+            - generic [ref=e98]: USD→MDL
+            - generic [ref=e99]: "17.25"
+            - generic [ref=e100]: курс НБМ
+          - button "2" [ref=e101] [cursor=pointer]:
+            - img [ref=e102]
+            - generic [ref=e105]: "2"
+    - generic [ref=e107]:
+      - generic [ref=e108]:
+        - generic [ref=e110] [cursor=pointer]:
+          - generic [ref=e111]:
+            - img [ref=e113]
+            - generic [ref=e116]: Новые заказы
+          - generic [ref=e117]: "2"
+          - generic [ref=e118]: требуют обработки
+        - generic [ref=e120] [cursor=pointer]:
+          - generic [ref=e121]:
+            - img [ref=e123]
+            - generic [ref=e126]: Заказов сегодня
+          - generic [ref=e127]: "2"
+          - generic [ref=e128]: за текущий день
+        - generic [ref=e130] [cursor=pointer]:
+          - generic [ref=e131]:
+            - img [ref=e133]
+            - generic [ref=e136]: Нулевой остаток
+          - generic [ref=e137]: "0"
+          - generic [ref=e138]: позиций распродано
+        - generic [ref=e140] [cursor=pointer]:
+          - generic [ref=e141]:
+            - img [ref=e143]
+            - generic [ref=e145]: Курс USD → MDL
+          - generic [ref=e146]: "17.25"
+          - generic [ref=e147]: "источник: НБМ"
+      - generic [ref=e148]:
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - generic [ref=e152]: Новые заказы
+              - generic [ref=e153]: "1"
+            - button "Все заказы →" [ref=e154] [cursor=pointer]
+          - button "S-000002 Новый Тест Витрина 1 поз. · самовывоз · 10.06.2026 22:31 542 MDL" [ref=e156] [cursor=pointer]:
+            - generic [ref=e157]:
+              - generic [ref=e158]:
+                - generic [ref=e159]: S-000002
+                - generic [ref=e160]: Новый
+              - generic [ref=e161]: Тест Витрина
+              - generic [ref=e162]: 1 поз. · самовывоз · 10.06.2026 22:31
+            - generic [ref=e164]: 542 MDL
+        - generic [ref=e165]:
+          - generic [ref=e166]:
+            - generic [ref=e167]:
+              - generic [ref=e168]: Курс USD → MDL
+              - generic [ref=e169]: курс НБМ
+            - generic [ref=e170]:
+              - generic [ref=e171]: "17.25"
+              - generic [ref=e172]: MDL за $1
+            - generic [ref=e173]: "источник: НБМ"
+            - button "Настроить курс и наценку →" [ref=e174] [cursor=pointer]
+          - generic [ref=e175]:
+            - generic [ref=e176]:
+              - generic [ref=e178]: Нулевой остаток
+              - generic [ref=e179]: "0"
+            - generic [ref=e181]: Все товары в наличии.

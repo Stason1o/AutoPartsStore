@@ -1,0 +1,136 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e9]: S
+      - generic [ref=e10]:
+        - generic [ref=e11]: SACRAMENTO
+        - generic [ref=e12]: ADMIN PANEL
+    - navigation [ref=e13]:
+      - button "Сводка" [ref=e14] [cursor=pointer]:
+        - img [ref=e16]
+        - generic [ref=e18]: Сводка
+      - button "Товары" [ref=e19] [cursor=pointer]:
+        - img [ref=e21]
+        - generic [ref=e24]: Товары
+      - button "Заказы" [ref=e25] [cursor=pointer]:
+        - img [ref=e27]
+        - generic [ref=e30]: Заказы
+      - button "Курс и цены" [ref=e31] [cursor=pointer]:
+        - img [ref=e33]
+        - generic [ref=e35]: Курс и цены
+      - button "Импорт / экспорт" [ref=e36] [cursor=pointer]:
+        - img [ref=e38]
+        - generic [ref=e41]: Импорт / экспорт
+      - button "Применимость" [ref=e42] [cursor=pointer]:
+        - img [ref=e44]
+        - generic [ref=e47]: Применимость
+      - button "Настройки" [ref=e48] [cursor=pointer]:
+        - img [ref=e50]
+        - generic [ref=e53]: Настройки
+    - generic [ref=e54]:
+      - generic [ref=e55]: AD
+      - generic [ref=e56]:
+        - generic [ref=e57]: Администратор
+        - generic [ref=e58]: admin
+      - button "Выйти" [ref=e59] [cursor=pointer]:
+        - img [ref=e60]
+  - generic [ref=e63]:
+    - banner [ref=e64]:
+      - generic [ref=e65]:
+        - heading "Карточка заказа" [level=1] [ref=e66]
+        - generic [ref=e67]:
+          - img [ref=e68]
+          - textbox "Поиск по артикулу, названию, бренду…" [ref=e72]
+        - generic [ref=e73]:
+          - generic [ref=e74] [cursor=pointer]:
+            - generic [ref=e75]: USD→MDL
+            - generic [ref=e76]: —
+            - generic [ref=e77]: курс НБМ
+          - button [ref=e78] [cursor=pointer]:
+            - img [ref=e79]
+    - generic [ref=e83]:
+      - generic [ref=e84]:
+        - button [ref=e85] [cursor=pointer]:
+          - img [ref=e86]
+        - generic [ref=e88]:
+          - generic [ref=e89]: S-000001
+          - generic [ref=e90]: Подтверждён
+          - generic [ref=e91]: 10.06.2026 21:16
+        - button "Печать" [ref=e92] [cursor=pointer]:
+          - img [ref=e93]
+          - text: Печать
+      - generic [ref=e95]:
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - generic [ref=e99]: Состав заказа
+              - generic [ref=e100]:
+                - button "Розница" [ref=e101] [cursor=pointer]
+                - button "Опт" [ref=e102] [cursor=pointer]
+            - generic [ref=e103]:
+              - generic [ref=e104]: Артикул / название
+              - generic [ref=e106]: Кол-во
+              - generic [ref=e108]: Цена
+              - generic [ref=e110]: Сумма
+            - generic [ref=e111]:
+              - generic [ref=e112]:
+                - generic [ref=e113] [cursor=pointer]: "94594"
+                - generic [ref=e114]: Радиатор кондиционера Audi A4
+              - generic [ref=e115]: "2"
+              - generic [ref=e116]: "542"
+              - generic [ref=e117]: 1 084
+            - generic [ref=e118]:
+              - generic [ref=e119]:
+                - generic [ref=e120]: Скидка
+                - generic [ref=e121]:
+                  - button "%" [ref=e122] [cursor=pointer]
+                  - button "сумма" [ref=e123] [cursor=pointer]
+                - generic [ref=e124]:
+                  - textbox [ref=e126]
+                  - generic [ref=e127]: "%"
+                - button "Применить" [ref=e128] [cursor=pointer]
+              - generic [ref=e129]:
+                - generic [ref=e130]: Товары
+                - generic [ref=e131]: 1 084 MDL
+              - generic [ref=e132]:
+                - generic [ref=e133]: Доставка
+                - generic [ref=e134]: 50 MDL
+              - generic [ref=e135]:
+                - generic [ref=e136]: Итого
+                - generic [ref=e137]: 1 134 MDL
+          - generic [ref=e138]:
+            - generic [ref=e139]: Смена статуса
+            - generic [ref=e140]:
+              - button "Новый" [disabled] [ref=e141]
+              - button "Подтверждён" [disabled] [ref=e142]: Подтверждён
+              - button "Сборка" [ref=e144] [cursor=pointer]
+              - button "Доставка" [disabled] [ref=e145]
+              - button "Готов к выдаче" [disabled] [ref=e146]
+              - button "Завершён" [disabled] [ref=e147]
+              - button "Отменён" [ref=e148] [cursor=pointer]
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - generic [ref=e151]: Клиент
+            - generic [ref=e152]: Иван
+            - generic [ref=e153]:
+              - generic [ref=e154]:
+                - generic [ref=e155]: Телефон
+                - generic [ref=e156]: "+37360123456"
+              - generic [ref=e157]:
+                - generic [ref=e158]: E-mail
+                - generic [ref=e159]: —
+              - generic [ref=e160]:
+                - generic [ref=e161]: Тип цен
+                - generic [ref=e162]: розница
+          - generic [ref=e163]:
+            - generic [ref=e164]: Получение и оплата
+            - generic [ref=e165]:
+              - generic [ref=e166]:
+                - generic [ref=e167]: Способ
+                - generic [ref=e168]: Курьер по Кишинёву
+              - generic [ref=e169]:
+                - generic [ref=e170]: Доставка
+                - generic [ref=e171]: 50 MDL
+              - generic [ref=e172]:
+                - generic [ref=e173]: Оплата
+                - generic [ref=e174]: Наличными курьеру

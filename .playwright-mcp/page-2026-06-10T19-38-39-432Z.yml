@@ -1,0 +1,18 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - generic [ref=e9]: S
+    - generic [ref=e10]:
+      - generic [ref=e11]: SACRAMENTO
+      - generic [ref=e12]: ADMIN PANEL
+  - generic [ref=e13]: Вход в админ-панель
+  - generic [ref=e14]: Авторизуйтесь, чтобы управлять магазином.
+  - generic [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]: Логин
+      - textbox "Логин" [ref=e19]:
+        - /placeholder: admin
+    - generic [ref=e20]:
+      - generic [ref=e21]: Пароль
+      - textbox "Пароль" [ref=e23]:
+        - /placeholder: ••••••••••
+  - button "Войти" [disabled]

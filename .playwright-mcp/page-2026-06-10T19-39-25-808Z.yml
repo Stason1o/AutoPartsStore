@@ -1,0 +1,74 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e9]: S
+      - generic [ref=e10]:
+        - generic [ref=e11]: SACRAMENTO
+        - generic [ref=e12]: ADMIN PANEL
+    - navigation [ref=e13]:
+      - button "Сводка" [ref=e14] [cursor=pointer]:
+        - img [ref=e16]
+        - generic [ref=e18]: Сводка
+      - button "Товары" [ref=e19] [cursor=pointer]:
+        - img [ref=e21]
+        - generic [ref=e24]: Товары
+      - button "Заказы" [ref=e25] [cursor=pointer]:
+        - img [ref=e27]
+        - generic [ref=e30]: Заказы
+      - button "Курс и цены" [ref=e31] [cursor=pointer]:
+        - img [ref=e33]
+        - generic [ref=e35]: Курс и цены
+      - button "Импорт / экспорт" [ref=e36] [cursor=pointer]:
+        - img [ref=e38]
+        - generic [ref=e41]: Импорт / экспорт
+      - button "Применимость" [ref=e42] [cursor=pointer]:
+        - img [ref=e44]
+        - generic [ref=e47]: Применимость
+      - button "Настройки" [ref=e48] [cursor=pointer]:
+        - img [ref=e50]
+        - generic [ref=e53]: Настройки
+    - generic [ref=e54]:
+      - generic [ref=e55]: AD
+      - generic [ref=e56]:
+        - generic [ref=e57]: Администратор
+        - generic [ref=e58]: admin
+      - button "Выйти" [ref=e59] [cursor=pointer]:
+        - img [ref=e60]
+  - generic [ref=e63]:
+    - banner [ref=e64]:
+      - generic [ref=e65]:
+        - heading "Товары" [level=1] [ref=e66]
+        - generic [ref=e67]:
+          - img [ref=e68]
+          - textbox "Поиск по артикулу, названию, бренду…" [ref=e72]
+        - generic [ref=e73]:
+          - generic [ref=e74] [cursor=pointer]:
+            - generic [ref=e75]: USD→MDL
+            - generic [ref=e76]: —
+            - generic [ref=e77]: курс НБМ
+          - button [ref=e78] [cursor=pointer]:
+            - img [ref=e79]
+    - generic [ref=e83]:
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - img [ref=e86]
+          - textbox "Артикул, название, OEM…" [ref=e90]
+        - combobox [ref=e91] [cursor=pointer]:
+          - option "Все категории" [selected]
+        - textbox "Бренд" [ref=e93]
+        - generic [ref=e97] [cursor=pointer]: В наличии
+        - generic [ref=e101] [cursor=pointer]: Только активные
+        - button "Добавить товар" [ref=e102] [cursor=pointer]:
+          - img [ref=e103]
+          - text: Добавить товар
+      - generic [ref=e107]:
+        - generic [ref=e108]:
+          - generic [ref=e109]: Артикул / название
+          - generic [ref=e110]: Категория
+          - generic [ref=e111]: Закупка
+          - generic [ref=e112]: Розница
+          - generic [ref=e113]: Опт
+          - generic [ref=e114]: Остаток
+          - generic [ref=e115]: Полка
+          - generic [ref=e116]: Активн.
+        - generic [ref=e117]: Загрузка…

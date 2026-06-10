@@ -9,6 +9,7 @@ import type { AdminProduct, Page, Vehicle } from '../api/types';
 import { C } from '../theme';
 import { Card, Field, Mono, TableHead } from '../components/ui';
 import { useToast } from '../components/Toast';
+import VinLookupCard from './VinLookupCard';
 
 interface VehicleForm {
   make: string;
@@ -113,7 +114,9 @@ export default function ApplicabilityPage() {
   const grid = '1fr 140px 140px 40px';
 
   return (
-    <Box sx={{ animation: 'aIn .25s ease both', display: 'grid', gridTemplateColumns: '1fr 380px', gap: '18px', alignItems: 'start' }}>
+    <Box sx={{ animation: 'aIn .25s ease both' }}>
+    <VinLookupCard />
+    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '18px', alignItems: 'start' }}>
       {/* directory */}
       <Card>
         <Box sx={{ p: '16px 20px', borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
@@ -390,6 +393,7 @@ export default function ApplicabilityPage() {
           </>
         )}
       </Dialog>
+    </Box>
     </Box>
   );
 }
