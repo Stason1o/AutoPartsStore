@@ -3,6 +3,29 @@ import { serverGet, type CategoryNode, type Page, type ProductListItem } from '@
 import ProductCard from '@/components/ProductCard';
 import { T } from '@/theme';
 
+export async function generateMetadata({ searchParams }: { searchParams: Promise<CatalogParams> }) {
+  const params = await searchParams;
+  if (params.search) {
+    return { title: `Поиск «${params.search}»`, robots: { index: false } };
+  }
+  if (params.categoryId) {
+    try {
+      const categories = await serverGet<CategoryNode[]>('/api/categories');
+      const category = categories.find(c => String(c.id) === params.categoryId);
+      if (category) {
+        return {
+          title: `${category.name} — купить в Кишинёве`,
+          description: `${category.name}: наличие на складе в Кишинёве, самовывоз сегодня, доставка курьером. Подбор по марке и модели автомобиля.`,
+        };
+      }
+    } catch { /* метаданные по умолчанию */ }
+  }
+  return {
+    title: 'Каталог автозапчастей',
+    description: 'Весь каталог запчастей Sacramento: радиаторы, оптика, кузов и другое. Реальные остатки склада в Кишинёве.',
+  };
+}
+
 interface CatalogParams {
   search?: string;
   categoryId?: string;

@@ -22,9 +22,20 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SACRAMENTO — автозапчасти в Кишинёве | подбор по автомобилю',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sacramento.md'),
+  title: {
+    default: 'SACRAMENTO — автозапчасти в Кишинёве | подбор по автомобилю',
+    template: '%s | SACRAMENTO',
+  },
   description:
     'Запчасти для европейских и азиатских авто. Наличие на складе в Кишинёве, самовывоз сегодня и доставка курьером по Кишинёву. Подбор по марке, модели и году.',
+  openGraph: {
+    type: 'website',
+    siteName: 'SACRAMENTO Auto Parts',
+    locale: 'ru_RU',
+    title: 'SACRAMENTO — автозапчасти в Кишинёве',
+    description: 'Подбор запчастей по марке, модели и году. Наличие на складе, самовывоз сегодня.',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

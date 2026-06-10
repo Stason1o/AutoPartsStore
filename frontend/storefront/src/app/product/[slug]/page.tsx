@@ -17,10 +17,13 @@ async function loadProduct(slug: string): Promise<ProductDetail | null> {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const p = await loadProduct(slug);
-  if (!p) return { title: 'Товар не найден — SACRAMENTO' };
+  if (!p) return { title: 'Товар не найден' };
+  const description = `${p.name}${p.brand ? ` (${p.brand})` : ''}. ${p.available > 0 ? 'В наличии в Кишинёве.' : 'Уточняйте наличие.'} Цена: ${p.price ?? '—'} MDL. Артикул ${p.sku}.`;
   return {
-    title: `${p.name} — арт. ${p.sku} | SACRAMENTO`,
-    description: `${p.name}${p.brand ? ` (${p.brand})` : ''}. ${p.available > 0 ? 'В наличии в Кишинёве.' : 'Уточняйте наличие.'} Цена: ${p.price ?? '—'} MDL.`,
+    title: `${p.name} — арт. ${p.sku}`,
+    description,
+    alternates: { canonical: `/product/${p.slug}` },
+    openGraph: { title: p.name, description, type: 'website' },
   };
 }
 
