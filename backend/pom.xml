@@ -135,4 +135,19 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<!-- GraalVM native image: mvn -Pnative native:compile (нужен GraalVM JDK 25, ~8 ГБ RAM) -->
+		<profile>
+			<id>native</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.graalvm.buildtools</groupId>
+						<artifactId>native-maven-plugin</artifactId>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 </project>

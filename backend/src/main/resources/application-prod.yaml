@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sacramento}
+    username: ${DB_USER:sacramento}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+
+server:
+  port: ${SERVER_PORT:8080}
+  forward-headers-strategy: native   # за nginx: реальный IP и https-схема
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ORIGINS}   # например https://sacramento.md,https://admin.sacramento.md
+
+logging:
+  level:
+    root: INFO

@@ -17,12 +17,14 @@ public class OrderService {
     private final OrderRepository orders;
     private final ProductRepository products;
     private final SettingsService settings;
+    private final md.sacramento.common.AuditService audit;
 
     public OrderService(OrderRepository orders, ProductRepository products,
-                        SettingsService settings) {
+                        SettingsService settings, md.sacramento.common.AuditService audit) {
         this.orders = orders;
         this.products = products;
         this.settings = settings;
+        this.audit = audit;
     }
 
     @Transactional
@@ -94,6 +96,8 @@ public class OrderService {
         }
 
         order.setStatus(newStatus);
+        audit.log("order.status", java.util.Map.of(
+                "number", order.getNumber(), "from", current.name(), "to", newStatus.name()));
         return orders.save(order);
     }
 

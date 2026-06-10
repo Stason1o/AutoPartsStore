@@ -19,7 +19,7 @@ spring:
       max-request-size: 60MB
 
 server:
-  port: ${SERVER_PORT:8081}
+  port: ${SERVER_PORT:8090}
 
 management:
   endpoints:

@@ -21,12 +21,14 @@ public class PricingService {
     private final ExchangeRateRepository rates;
     private final ProductRepository products;
     private final SettingsService settings;
+    private final md.sacramento.common.AuditService audit;
 
     public PricingService(ExchangeRateRepository rates, ProductRepository products,
-                          SettingsService settings) {
+                          SettingsService settings, md.sacramento.common.AuditService audit) {
         this.rates = rates;
         this.products = products;
         this.settings = settings;
+        this.audit = audit;
     }
 
     /** Действующий курс валюты к MDL с учётом режима (BANK / MANUAL). */
@@ -99,6 +101,7 @@ public class PricingService {
         }
         ExchangeRate saved = rates.save(
                 new ExchangeRate(currency.toUpperCase(), rate, ExchangeRate.Source.MANUAL, LocalDate.now()));
+        audit.log("rate.manual", java.util.Map.of("currency", saved.getCurrency(), "rate", rate));
         recalculateAll();
         return saved;
     }
@@ -106,6 +109,7 @@ public class PricingService {
     @Transactional
     public void setRateMode(ExchangeRate.Source mode) {
         settings.set(SettingsService.RATE_MODE, mode.name());
+        audit.log("rate.mode", java.util.Map.of("mode", mode.name()));
         recalculateAll();
     }
 
@@ -115,6 +119,7 @@ public class PricingService {
             throw new IllegalArgumentException("Наценка не может быть отрицательной");
         }
         settings.set(SettingsService.GLOBAL_MARKUP_PERCENT, percent.toPlainString());
+        audit.log("markup.global", java.util.Map.of("percent", percent));
         recalculateAll();
     }
 }

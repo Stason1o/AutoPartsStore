@@ -67,15 +67,17 @@ public class ImportService {
     private final VehicleRepository vehicles;
     private final ProductVehicleRepository productVehicles;
     private final PricingService pricingService;
+    private final md.sacramento.common.AuditService audit;
 
     public ImportService(ProductRepository products, CategoryRepository categories,
                          VehicleRepository vehicles, ProductVehicleRepository productVehicles,
-                         PricingService pricingService) {
+                         PricingService pricingService, md.sacramento.common.AuditService audit) {
         this.products = products;
         this.categories = categories;
         this.vehicles = vehicles;
         this.productVehicles = productVehicles;
         this.pricingService = pricingService;
+        this.audit = audit;
     }
 
     /** Шаг 1: разбор файла → предпросмотр (ничего не записывает). */
@@ -148,6 +150,7 @@ public class ImportService {
             applyVehicles(saved, row.vehicles(), row.autoMatchedVehicles());
         }
         pricingService.recalculateAll();
+        audit.log("import.confirm", Map.of("created", created, "updated", updated));
         return new Report(created, updated);
     }
 
