@@ -21,7 +21,7 @@
 **Files:**
 - Modify: `backend/src/main/resources/application.yaml:12-13`
 
-- [ ] **Step 1: Добавить свойства батчинга**
+- [x] **Step 1: Добавить свойства батчинга**
 
 ```yaml
     properties:
@@ -31,12 +31,12 @@
       hibernate.order_updates: true
 ```
 
-- [ ] **Step 2: Прогнать существующие тесты**
+- [x] **Step 2: Прогнать существующие тесты**
 
 Run: `cd backend && mvn test -q`
 Expected: BUILD SUCCESS (поведенческих изменений нет)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add backend/src/main/resources/application.yaml
@@ -52,7 +52,7 @@ git commit -m "perf: включить JDBC-батчинг Hibernate (batch_size=
 - Modify: `backend/src/main/java/md/sacramento/pricing/PricingService.java:72-87`
 - Test: `backend/src/test/java/md/sacramento/pricing/PricingIntegrationTest.java`
 
-- [ ] **Step 1: Написать падающие тесты на каскад категории и правила округления через recalculateAll**
+- [x] **Step 1: Написать падающие тесты на каскад категории и правила округления через recalculateAll**
 
 В `PricingIntegrationTest` добавить (категорийную наценку текущий recalc уже поддерживает, тесты фиксируют контракт перед заменой реализации; тест на TO_5 проверяет новый SQL-путь округления):
 
@@ -123,12 +123,12 @@ git commit -m "perf: включить JDBC-батчинг Hibernate (batch_size=
     }
 ```
 
-- [ ] **Step 2: Запустить тесты — убедиться, что зелёные на старой реализации (контракт зафиксирован)**
+- [x] **Step 2: Запустить тесты — убедиться, что зелёные на старой реализации (контракт зафиксирован)**
 
 Run: `cd backend && mvn test -q -Dtest=PricingIntegrationTest`
 Expected: PASS (старый Java-цикл уже даёт эти результаты; тесты защищают от регрессии при замене на SQL)
 
-- [ ] **Step 3: Добавить методы в ProductRepository**
+- [x] **Step 3: Добавить методы в ProductRepository**
 
 ```java
     /** Валюты закупки, участвующие в автопересчёте. */
@@ -169,7 +169,7 @@ Expected: PASS (старый Java-цикл уже даёт эти результ
                         java.math.BigDecimal globalMarkup, String rule);
 ```
 
-- [ ] **Step 4: Переписать recalculateAll**
+- [x] **Step 4: Переписать recalculateAll**
 
 В `PricingService` заменить тело `recalculateAll()` (строки 73–87):
 
@@ -194,12 +194,12 @@ Expected: PASS (старый Java-цикл уже даёт эти результ
 
 Удалить `ProductRepository.findAllForRecalculation()` (единственный вызов был здесь) и импорт `java.util.List` в PricingService, если стал лишним.
 
-- [ ] **Step 5: Тесты**
+- [x] **Step 5: Тесты**
 
 Run: `cd backend && mvn test -q -Dtest='Pricing*,Catalog*,ImportExport*'`
 Expected: PASS — включая старые `newBankRateRecalculatesAutoPricesButNotManual` (ручные цены не трогаются) и новые из Step 1
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add backend/src/main/java/md/sacramento/catalog/ProductRepository.java \
@@ -219,12 +219,12 @@ git commit -m "perf: пересчёт цен одним bulk UPDATE вместо
 - Modify: `backend/src/main/java/md/sacramento/vehicles/ProductVehicleRepository.java`
 - Test: existing `backend/src/test/java/md/sacramento/importexport/ImportExportIntegrationTest.java`
 
-- [ ] **Step 1: Базовая линия — тесты импорта зелёные**
+- [x] **Step 1: Базовая линия — тесты импорта зелёные**
 
 Run: `cd backend && mvn test -q -Dtest='ImportExport*,LegacyImport*'`
 Expected: PASS
 
-- [ ] **Step 2: Репозиторные методы для предзагрузки**
+- [x] **Step 2: Репозиторные методы для предзагрузки**
 
 `ProductRepository`:
 
@@ -244,7 +244,7 @@ Expected: PASS
     void deleteByIdProductIdIn(java.util.Collection<Long> productIds);
 ```
 
-- [ ] **Step 3: ProductVehicle → Persistable (убрать merge-SELECT на каждую связку)**
+- [x] **Step 3: ProductVehicle → Persistable (убрать merge-SELECT на каждую связку)**
 
 `ProductVehicle` реализует `Persistable<ProductVehicleId>`: конструктор с аргументами помечает сущность новой, после загрузки из БД/persist — не новой.
 
@@ -276,7 +276,7 @@ public class ProductVehicle implements org.springframework.data.domain.Persistab
 
 (Точные имена полей сверить с текущим классом; суть — `save()` должен идти в `persist`, а не `merge`.)
 
-- [ ] **Step 4: Переписать confirm() без запросов в цикле**
+- [x] **Step 4: Переписать confirm() без запросов в цикле**
 
 ```java
     /** Шаг 2: подтверждение — транзакционный upsert по артикулу. */
@@ -367,12 +367,12 @@ public class ProductVehicle implements org.springframework.data.domain.Persistab
 
 В `preview()`/`registerPending()` заменить `rows.stream().filter(r -> products.existsBySku(r.sku())).count()` на подсчёт через `findExistingSkus` чанками по 1000.
 
-- [ ] **Step 5: Тесты**
+- [x] **Step 5: Тесты**
 
 Run: `cd backend && mvn test -q -Dtest='ImportExport*,LegacyImport*,ProductVehicles*,Catalog*'`
 Expected: PASS (LegacyImport идёт через registerPending/confirm — проверяет тот же путь)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add backend/src/main/java/md/sacramento/importexport/ImportService.java \
@@ -391,7 +391,7 @@ git commit -m "perf: импорт — предзагрузка SKU/slug/кате
 - Modify: `backend/src/main/java/md/sacramento/catalog/ProductRepository.java`
 - Test: existing `backend/src/test/java/md/sacramento/importexport/ImportExportIntegrationTest.java`
 
-- [ ] **Step 1: Лёгкие проекции вместо findAll() сущностей**
+- [x] **Step 1: Лёгкие проекции вместо findAll() сущностей**
 
 `ProductRepository`:
 
@@ -400,7 +400,7 @@ git commit -m "perf: импорт — предзагрузка SKU/slug/кате
     java.util.List<Object[]> findAllOemPairs();
 ```
 
-- [ ] **Step 2: Переписать export(): страницы товаров + SXSSF**
+- [x] **Step 2: Переписать export(): страницы товаров + SXSSF**
 
 Ключевые изменения `SnapshotService.export()`:
 
@@ -466,12 +466,12 @@ git commit -m "perf: импорт — предзагрузка SKU/slug/кате
 
 `toRow(...)` берёт OEM из `oemByProduct` (не трогает lazy-коллекцию), имя категории — из `categoryNameById` по `p.getCategory().getId()` (id прокси не инициализирует сущность; после `entityManager.clear()` прокси не дёргать — поэтому только id). Инжектировать `jakarta.persistence.EntityManager` через конструктор. `writeCsv`/`writeXlsx` удалить (логика встроена), `CategoryRepository` добавить в конструктор.
 
-- [ ] **Step 3: Тесты**
+- [x] **Step 3: Тесты**
 
 Run: `cd backend && mvn test -q -Dtest='ImportExport*'`
 Expected: PASS (экспорт-импорт roundtrip; порядок строк теперь по id — проверить, что тесты не завязаны на другой порядок)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add backend/src/main/java/md/sacramento/importexport/SnapshotService.java \
@@ -486,7 +486,7 @@ git commit -m "perf: экспорт — SXSSF (поток на диск) и по
 **Files:**
 - Create: `backend/src/main/resources/db/migration/V5__search_indexes.sql`
 
-- [ ] **Step 1: Миграция**
+- [x] **Step 1: Миграция**
 
 ```sql
 -- Hibernate генерирует lower(name) LIKE '%…%' — старые trgm-индексы по name/sku не используются.
@@ -502,12 +502,12 @@ CREATE INDEX idx_oem_normalized_trgm ON product_oem_numbers USING gin (normalize
 CREATE INDEX idx_vehicles_make_lower ON vehicles (lower(make));
 ```
 
-- [ ] **Step 2: Тесты (Flyway применит миграцию в Testcontainers)**
+- [x] **Step 2: Тесты (Flyway применит миграцию в Testcontainers)**
 
 Run: `cd backend && mvn test -q -Dtest='SchemaAndSeed*,Catalog*,Vin*'`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add backend/src/main/resources/db/migration/V5__search_indexes.sql
@@ -518,15 +518,32 @@ git commit -m "perf: trgm-индексы по lower(name)/lower(sku)/normalized,
 
 ### Task 6: Полная верификация на больших объёмах
 
-- [ ] **Step 1: Все тесты**
+- [x] **Step 1: Все тесты**
 
 Run: `cd backend && mvn test -q`
 Expected: BUILD SUCCESS
 
-- [ ] **Step 2: Перезапустить бэкенд, посеять 60k товаров / 165k OEM / 11k машин / 279k связей** (SQL-сид из сессии тестирования), замерить:
+- [x] **Step 2: Перезапустить бэкенд, посеять 60k товаров / 165k OEM / 11k машин / 279k связей** (SQL-сид из сессии тестирования), замерить:
   - `PUT /api/admin/rates/markup` — цель: секунды (было: >10 мин, не завершился);
   - импорт 10k строк preview+confirm — цель: < 1 мин (было: 8 строк/сек ≈ часы);
   - `POST /api/admin/export/run` — цель: < 10 c и пик heap < 300 МБ (было: 19–21 c, 1.6–2.8 ГБ);
   - поиск по имени/SKU/OEM — `EXPLAIN` должен показывать Bitmap Index Scan по новым индексам.
 
-- [ ] **Step 3: Удалить сид, вернуть базу, финальный smoke витрины/админки.**
+- [x] **Step 3: Удалить сид, вернуть базу, финальный smoke витрины/админки.**
+
+---
+
+## Результаты верификации (2026-06-11, 60–70k товаров, dev-Mac)
+
+| Сценарий | До | После |
+|---|---|---|
+| Смена глобальной наценки (60k) | >10 мин, не завершилось (timeout) | **1.0–1.5 с** |
+| Импорт 10k строк: preview | 2.4 с | **0.37 с** |
+| Импорт 10k строк: confirm | 8 строк/сек (≈ часы) | **9.4 с** (всё записано, цены пересчитаны) |
+| Экспорт снапшота (70k) | 19–21 с, пик heap 1.6–2.8 ГБ | **6.4 с**, пик ~300 МБ |
+| Поиск имя/SKU/OEM | 50–160 мс (seq scan) | **24–57 мс** (Bitmap Index Scan по trgm) |
+| VIN decode (кэш) | 21 мс | 12 мс |
+
+Все 91 тест зелёные. EXPLAIN подтверждает использование новых индексов.
+Примечание: при реальном росте каталога до 70k+ позиций рекомендуется поднять
+прод-heap c -Xmx384m до 512m (пик экспорта ~300 МБ).
