@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -69,19 +68,19 @@ public class PricingService {
         return RoundingRule.valueOf(settings.get(SettingsService.ROUNDING_RULE));
     }
 
-    /** Пересчёт всех нерУчных цен — вызывается после смены курса или наценки. */
+    /** Пересчёт всех неручных цен — вызывается после смены курса или наценки. */
     @Transactional
     public int recalculateAll() {
-        List<Product> toRecalc = products.findAllForRecalculation();
+        RoundingRule rule = roundingRule();
+        BigDecimal globalMarkup = settings.getDecimal(SettingsService.GLOBAL_MARKUP_PERCENT);
         int updated = 0;
-        for (Product product : toRecalc) {
-            Optional<BigDecimal> price = priceFor(product);
-            if (price.isPresent() && !price.get().equals(product.getRetailPrice())) {
-                product.setRetailPrice(price.get());
-                updated++;
+        for (String currency : products.findDistinctPurchaseCurrencies()) {
+            Optional<BigDecimal> rate = currentRate(currency);
+            if (rate.isEmpty()) {
+                continue; // нет курса — цены этой валюты не трогаем
             }
+            updated += products.bulkRecalculate(currency, rate.get(), globalMarkup, rule.name());
         }
-        products.saveAll(toRecalc);
         log.info("Пересчитано розничных цен: {}", updated);
         return updated;
     }

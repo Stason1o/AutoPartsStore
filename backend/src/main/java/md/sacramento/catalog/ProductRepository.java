@@ -31,10 +31,40 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             """)
     org.springframework.data.domain.Page<Product> findUnmatched(org.springframework.data.domain.Pageable pageable);
 
-    /** Кандидаты на пересчёт цены: автоцена + есть закупка (категория сразу — против N+1). */
+    /** Валюты закупки, участвующие в автопересчёте. */
     @Query("""
-            select p from Product p left join fetch p.category
+            select distinct p.purchaseCurrency from Product p
             where p.retailPriceManual = false and p.purchasePrice is not null
             """)
-    java.util.List<Product> findAllForRecalculation();
+    java.util.List<String> findDistinctPurchaseCurrencies();
+
+    /**
+     * Массовый пересчёт розницы одним UPDATE: каскад наценки товар→категория→глобальная,
+     * округление по правилу. Дублирует PriceCalculator.retail на SQL — менять синхронно.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(nativeQuery = true, value = """
+            WITH calc AS (
+                SELECT p.id,
+                       CASE CAST(:rule AS text)
+                           WHEN 'NONE' THEN round(p.purchase_price * :rate
+                               * (1 + COALESCE(p.markup_percent, c.markup_percent, :globalMarkup) / 100), 2)
+                           WHEN 'TO_1' THEN ceil(p.purchase_price * :rate
+                               * (1 + COALESCE(p.markup_percent, c.markup_percent, :globalMarkup) / 100))
+                           ELSE ceil(p.purchase_price * :rate
+                               * (1 + COALESCE(p.markup_percent, c.markup_percent, :globalMarkup) / 100) / 5) * 5
+                       END AS new_price
+                FROM products p
+                LEFT JOIN categories c ON c.id = p.category_id
+                WHERE p.retail_price_manual = false
+                  AND p.purchase_price IS NOT NULL
+                  AND p.purchase_currency = :currency
+            )
+            UPDATE products SET retail_price = calc.new_price, updated_at = now()
+            FROM calc
+            WHERE products.id = calc.id
+              AND products.retail_price IS DISTINCT FROM calc.new_price
+            """)
+    int bulkRecalculate(String currency, java.math.BigDecimal rate,
+                        java.math.BigDecimal globalMarkup, String rule);
 }

@@ -35,6 +35,9 @@ class PricingIntegrationTest {
     @Autowired
     SettingsService settings;
 
+    @Autowired
+    md.sacramento.catalog.CategoryRepository categoryRepository;
+
     @BeforeEach
     void setUp() {
         productRepository.deleteAll();
@@ -89,6 +92,68 @@ class PricingIntegrationTest {
         // 100 × 17.00 × 1.50 = 2550
         assertThat(productRepository.findById(id).orElseThrow().getRetailPrice())
                 .isEqualByComparingTo(new BigDecimal("2550"));
+    }
+
+    @Test
+    void categoryMarkupUsedInRecalculation() {
+        var cat = new md.sacramento.catalog.Category();
+        cat.setName("Категория 40%");
+        cat.setSlug("cat-40");
+        cat.setMarkupPercent(new BigDecimal("40"));
+        cat = categoryRepository.save(cat);
+
+        Long id = productService.create(new ProductDtos.ProductRequest(
+                "CAT-1", "Категорийная наценка", null, null, cat.getId(),
+                new BigDecimal("100"), "USD", null, null, false,
+                null, 1, null, null, true, null)).id();
+
+        pricingService.saveBankRate("USD", new BigDecimal("17.00"), LocalDate.now());
+
+        // 100 × 17.00 × 1.40 = 2380
+        assertThat(productRepository.findById(id).orElseThrow().getRetailPrice())
+                .isEqualByComparingTo(new BigDecimal("2380"));
+    }
+
+    @Test
+    void roundingToFiveAppliedInRecalculation() {
+        settings.set(SettingsService.ROUNDING_RULE, "TO_5");
+        Long id = productService.create(new ProductDtos.ProductRequest(
+                "R5-1", "Округление до 5", null, null, null,
+                new BigDecimal("100"), "USD", null, null, false,
+                null, 1, null, null, true, null)).id();
+
+        pricingService.saveBankRate("USD", new BigDecimal("17.01"), LocalDate.now());
+
+        // 100 × 17.01 × 1.30 = 2211.3 → ceil(/5)*5 = 2215
+        assertThat(productRepository.findById(id).orElseThrow().getRetailPrice())
+                .isEqualByComparingTo(new BigDecimal("2215"));
+    }
+
+    @Test
+    void roundingNoneKeepsTwoDecimals() {
+        settings.set(SettingsService.ROUNDING_RULE, "NONE");
+        Long id = productService.create(new ProductDtos.ProductRequest(
+                "RN-1", "Без округления", null, null, null,
+                new BigDecimal("33.33"), "USD", null, null, false,
+                null, 1, null, null, true, null)).id();
+
+        pricingService.saveBankRate("USD", new BigDecimal("17.00"), LocalDate.now());
+
+        // 33.33 × 17.00 × 1.30 = 736.593 → 736.59
+        assertThat(productRepository.findById(id).orElseThrow().getRetailPrice())
+                .isEqualByComparingTo(new BigDecimal("736.59"));
+    }
+
+    @Test
+    void currencyWithoutRateIsSkipped() {
+        Long id = productService.create(new ProductDtos.ProductRequest(
+                "EUR-1", "Нет курса EUR", null, null, null,
+                new BigDecimal("100"), "EUR", null, null, false,
+                null, 1, null, null, true, null)).id();
+
+        pricingService.saveBankRate("USD", new BigDecimal("17.00"), LocalDate.now());
+
+        assertThat(productRepository.findById(id).orElseThrow().getRetailPrice()).isNull();
     }
 
     @Test
