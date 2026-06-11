@@ -25,6 +25,10 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @Query("select p.slug from Product p")
     java.util.List<String> findAllSlugs();
 
+    /** Пары (productId, oemNumber) для экспорта — без загрузки сущностей и lazy-коллекций. */
+    @Query("select p.id, o.oemNumber from Product p join p.oemNumbers o")
+    java.util.List<Object[]> findAllOemPairs();
+
     long countByStockQtyAndActiveTrue(int stockQty);
 
     @Modifying
