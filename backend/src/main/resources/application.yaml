@@ -11,6 +11,9 @@ spring:
     open-in-view: false
     properties:
       hibernate.default_batch_fetch_size: 50
+      hibernate.jdbc.batch_size: 50
+      hibernate.order_inserts: true
+      hibernate.order_updates: true
   flyway:
     enabled: true
   servlet:
