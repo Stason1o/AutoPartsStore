@@ -9,7 +9,6 @@ import md.sacramento.catalog.Product;
 import md.sacramento.catalog.ProductRepository;
 import md.sacramento.common.NotFoundException;
 import md.sacramento.common.SettingsService;
-import md.sacramento.vehicles.ProductVehicle;
 import md.sacramento.vehicles.ProductVehicleRepository;
 import md.sacramento.vehicles.Vehicle;
 import md.sacramento.vehicles.VehicleRepository;
@@ -70,9 +69,9 @@ public class SnapshotService {
         Map<Long, Vehicle> vehicleById = vehicles.findAll().stream()
                 .collect(Collectors.toMap(Vehicle::getId, v -> v));
         Map<Long, List<Vehicle>> vehiclesByProduct = new HashMap<>();
-        for (ProductVehicle pv : productVehicles.findAll()) {
-            vehiclesByProduct.computeIfAbsent(pv.getId().getProductId(), k -> new ArrayList<>())
-                    .add(vehicleById.get(pv.getId().getVehicleId()));
+        for (Object[] pair : productVehicles.findAllLinkPairs()) {
+            vehiclesByProduct.computeIfAbsent((Long) pair[0], k -> new ArrayList<>())
+                    .add(vehicleById.get((Long) pair[1]));
         }
         Map<Long, List<String>> oemByProduct = new HashMap<>();
         for (Object[] pair : products.findAllOemPairs()) {
