@@ -17,6 +17,14 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     boolean existsBySlug(String slug);
 
+    java.util.List<Product> findBySkuIn(java.util.Collection<String> skus);
+
+    @Query("select p.sku from Product p where p.sku in :skus")
+    java.util.List<String> findExistingSkus(java.util.Collection<String> skus);
+
+    @Query("select p.slug from Product p")
+    java.util.List<String> findAllSlugs();
+
     long countByStockQtyAndActiveTrue(int stockQty);
 
     @Modifying

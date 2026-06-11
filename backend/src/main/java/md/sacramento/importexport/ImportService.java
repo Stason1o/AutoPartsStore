@@ -118,7 +118,10 @@ public class ImportService {
     /** Регистрация разобранных строк (используется и обычным, и legacy-импортом). */
     @Transactional(readOnly = true)
     public Preview registerPending(List<ParsedRow> rows, List<RowError> errors) {
-        int toUpdate = (int) rows.stream().filter(r -> products.existsBySku(r.sku())).count();
+        int toUpdate = 0;
+        for (List<ParsedRow> chunk : chunks(rows, 1000)) {
+            toUpdate += products.findExistingSkus(chunk.stream().map(ParsedRow::sku).toList()).size();
+        }
         String token = UUID.randomUUID().toString();
         pending.put(token, new PendingImport(rows, Instant.now().plus(PREVIEW_TTL)));
         pending.entrySet().removeIf(e -> e.getValue().expiresAt().isBefore(Instant.now()));
@@ -133,32 +136,62 @@ public class ImportService {
         if (batch == null || batch.expiresAt().isBefore(Instant.now())) {
             throw new NotFoundException("Предпросмотр не найден или устарел — загрузите файл заново");
         }
+        List<ParsedRow> rows = batch.rows();
+
+        // Предзагрузка одним махом всего, что цикл раньше спрашивал у БД на каждую строку.
+        Map<String, Product> bySku = new java.util.HashMap<>();
+        for (List<ParsedRow> chunk : chunks(rows, 1000)) {
+            products.findBySkuIn(chunk.stream().map(ParsedRow::sku).toList())
+                    .forEach(p -> bySku.put(p.getSku(), p));
+        }
+        java.util.Set<String> slugs = new java.util.HashSet<>(products.findAllSlugs());
+        Map<String, Category> categoryByName = new java.util.HashMap<>();
+        categories.findAll().forEach(c -> categoryByName.put(c.getName().toLowerCase(), c));
+        Map<String, Vehicle> vehicleByKey = new java.util.HashMap<>();
+        vehicles.findAll().forEach(v -> vehicleByKey.put(vehicleKey(
+                v.getMake(), v.getModel(), v.getYearFrom(), v.getYearTo(), v.getEngine()), v));
+
+        // Старые связки обновляемых товаров — чанкованным делитом вместо делита на строку.
+        List<Long> updatedIds = rows.stream()
+                .map(r -> bySku.get(r.sku()))
+                .filter(java.util.Objects::nonNull)
+                .map(Product::getId)
+                .toList();
+        for (List<Long> chunk : chunks(updatedIds, 1000)) {
+            productVehicles.deleteByIdProductIdIn(chunk);
+        }
+
         int created = 0;
         int updated = 0;
-        for (ParsedRow row : batch.rows()) {
-            Product product = products.findBySku(row.sku()).orElse(null);
+        List<ProductVehicle> links = new ArrayList<>();
+        for (ParsedRow row : rows) {
+            Product product = bySku.get(row.sku());
             if (product == null) {
                 product = new Product();
                 product.setSku(row.sku());
-                product.setSlug(uniqueSlug(row.sku() + "-" + row.name()));
+                product.setSlug(uniqueSlug(row.sku() + "-" + row.name(), slugs));
                 created++;
             } else {
                 updated++;
             }
-            applyRow(product, row);
+            applyRow(product, row, categoryByName);
             Product saved = products.save(product);
-            applyVehicles(saved, row.vehicles(), row.autoMatchedVehicles());
+            for (CatalogFileFormat.VehicleSpec spec : row.vehicles()) {
+                Vehicle vehicle = findOrCreateVehicle(spec, vehicleByKey);
+                links.add(new ProductVehicle(saved.getId(), vehicle.getId(), row.autoMatchedVehicles()));
+            }
         }
+        productVehicles.saveAll(links);
         pricingService.recalculateAll();
         audit.log("import.confirm", Map.of("created", created, "updated", updated));
         return new Report(created, updated);
     }
 
-    private void applyRow(Product p, ParsedRow row) {
+    private void applyRow(Product p, ParsedRow row, Map<String, Category> categoryByName) {
         p.setName(row.name());
         p.setBrand(emptyToNull(row.brand()));
         p.setCategory(row.category() == null || row.category().isBlank()
-                ? null : findOrCreateCategory(row.category()));
+                ? null : findOrCreateCategory(row.category(), categoryByName));
         p.setPurchasePrice(row.purchasePrice());
         p.setPurchaseCurrency(row.currency() == null || row.currency().isBlank()
                 ? "USD" : row.currency().toUpperCase());
@@ -176,36 +209,40 @@ public class ImportService {
         row.oemNumbers().stream().map(OemNumber::new).distinct().forEach(p.getOemNumbers()::add);
     }
 
-    private void applyVehicles(Product product, List<CatalogFileFormat.VehicleSpec> specs,
-                               boolean autoMatched) {
-        productVehicles.deleteByIdProductId(product.getId());
-        for (CatalogFileFormat.VehicleSpec spec : specs) {
-            Vehicle vehicle = vehicles
-                    .findByMakeIgnoreCaseAndModelIgnoreCaseAndYearFromAndYearToAndEngine(
-                            spec.make(), spec.model(), spec.yearFrom(), spec.yearTo(), spec.engine())
-                    .orElseGet(() -> {
-                        Vehicle v = new Vehicle();
-                        v.setMake(spec.make());
-                        v.setModel(spec.model());
-                        v.setYearFrom(spec.yearFrom());
-                        v.setYearTo(spec.yearTo());
-                        v.setEngine(spec.engine());
-                        return vehicles.save(v);
-                    });
-            productVehicles.save(new ProductVehicle(product.getId(), vehicle.getId(), autoMatched));
-        }
+    private static String vehicleKey(String make, String model, Integer yearFrom, Integer yearTo,
+                                     String engine) {
+        return (make + "|" + model + "|" + yearFrom + "|" + yearTo + "|" + engine).toLowerCase();
     }
 
-    private Category findOrCreateCategory(String name) {
-        return categories.findAll().stream()
-                .filter(c -> c.getName().equalsIgnoreCase(name.trim()))
-                .findFirst()
-                .orElseGet(() -> {
-                    Category category = new Category();
-                    category.setName(name.trim());
-                    category.setSlug(uniqueCategorySlug(name));
-                    return categories.save(category);
+    private Vehicle findOrCreateVehicle(CatalogFileFormat.VehicleSpec spec, Map<String, Vehicle> byKey) {
+        return byKey.computeIfAbsent(
+                vehicleKey(spec.make(), spec.model(), spec.yearFrom(), spec.yearTo(), spec.engine()),
+                k -> {
+                    Vehicle v = new Vehicle();
+                    v.setMake(spec.make());
+                    v.setModel(spec.model());
+                    v.setYearFrom(spec.yearFrom());
+                    v.setYearTo(spec.yearTo());
+                    v.setEngine(spec.engine());
+                    return vehicles.save(v);
                 });
+    }
+
+    private Category findOrCreateCategory(String name, Map<String, Category> byName) {
+        return byName.computeIfAbsent(name.trim().toLowerCase(), k -> {
+            Category category = new Category();
+            category.setName(name.trim());
+            category.setSlug(uniqueCategorySlug(name));
+            return categories.save(category);
+        });
+    }
+
+    private static <T> List<List<T>> chunks(List<T> list, int size) {
+        List<List<T>> result = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += size) {
+            result.add(list.subList(i, Math.min(i + size, list.size())));
+        }
+        return result;
     }
 
     private ParsedRow parseRow(int rowNumber, String[] raw, Map<String, Integer> header) {
@@ -313,11 +350,12 @@ public class ImportService {
         return s == null || s.isBlank() ? null : s.trim();
     }
 
-    private String uniqueSlug(String source) {
+    /** Подбор свободного slug по in-memory множеству занятых (вместо запроса на попытку). */
+    private String uniqueSlug(String source, java.util.Set<String> taken) {
         String base = SlugUtil.slugify(source);
         String slug = base;
         int i = 2;
-        while (products.existsBySlug(slug)) {
+        while (!taken.add(slug)) {
             slug = base + "-" + i++;
         }
         return slug;

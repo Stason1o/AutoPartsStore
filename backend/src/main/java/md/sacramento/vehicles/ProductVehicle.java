@@ -11,7 +11,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "product_vehicles")
-public class ProductVehicle {
+public class ProductVehicle implements org.springframework.data.domain.Persistable<ProductVehicle.Key> {
 
     @Embeddable
     public static class Key implements Serializable {
@@ -51,12 +51,28 @@ public class ProductVehicle {
     @Column(nullable = false)
     private boolean autoMatched;
 
+    /** Составной ключ известен до вставки — без isNew() save() уходит в merge с SELECT на строку. */
+    @jakarta.persistence.Transient
+    private boolean isNew = false;
+
     protected ProductVehicle() {
     }
 
     public ProductVehicle(Long productId, Long vehicleId, boolean autoMatched) {
         this.id = new Key(productId, vehicleId);
         this.autoMatched = autoMatched;
+        this.isNew = true;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @jakarta.persistence.PostPersist
+    @jakarta.persistence.PostLoad
+    void markNotNew() {
+        this.isNew = false;
     }
 
     public Key getId() { return id; }

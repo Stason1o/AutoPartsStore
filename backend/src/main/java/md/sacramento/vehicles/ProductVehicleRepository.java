@@ -13,6 +13,8 @@ public interface ProductVehicleRepository extends JpaRepository<ProductVehicle, 
 
     void deleteByIdProductId(Long productId);
 
+    void deleteByIdProductIdIn(java.util.Collection<Long> productIds);
+
     @Query("select pv.id.productId from ProductVehicle pv")
     List<Long> findAllLinkedProductIds();
 }
