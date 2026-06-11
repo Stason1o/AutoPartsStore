@@ -57,6 +57,7 @@ public class AdminOrderController {
     }
 
     @PostMapping("/orders/{id}/status")
+    @Transactional
     public OrderDtos.AdminOrderView changeStatus(@PathVariable Long id,
                                                  @RequestBody StatusRequest body) {
         return OrderDtos.AdminOrderView.of(service.changeStatus(id, body.status(), body.reason()));

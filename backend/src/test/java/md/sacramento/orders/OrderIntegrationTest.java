@@ -8,7 +8,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -16,10 +19,19 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
 class OrderIntegrationTest {
+
+    @Autowired
+    MockMvc mockMvc;
 
     @Autowired
     OrderService orderService;
@@ -140,6 +152,57 @@ class OrderIntegrationTest {
         Order discounted = orderService.setDiscount(order.getId(), new BigDecimal("10"), null);
         // 1000 − 10% = 900, доставка 0
         assertThat(discounted.getGrandTotal()).isEqualByComparingTo(new BigDecimal("900"));
+    }
+
+    private String checkoutJson(String phone, String email) {
+        return """
+                {"customerName":"Иван","phone":"%s","email":%s,
+                 "deliveryMethod":"PICKUP","paymentMethod":"CASH_PICKUP",
+                 "items":[{"productId":%d,"qty":1}]}
+                """.formatted(phone, email == null ? "null" : "\"" + email + "\"", productId);
+    }
+
+    @Test
+    void checkoutRejectsMalformedPhone() throws Exception {
+        mockMvc.perform(post("/api/orders").contentType(APPLICATION_JSON)
+                        .content(checkoutJson("не телефон", null)))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/orders").contentType(APPLICATION_JSON)
+                        .content(checkoutJson("12345", null)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void checkoutRejectsMalformedEmail() throws Exception {
+        mockMvc.perform(post("/api/orders").contentType(APPLICATION_JSON)
+                        .content(checkoutJson("+37360123456", "не-почта")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void checkoutAcceptsValidPhoneAndEmail() throws Exception {
+        mockMvc.perform(post("/api/orders").contentType(APPLICATION_JSON)
+                        .content(checkoutJson("+373 60 123 456", "client@mail.md")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.number").isNotEmpty());
+    }
+
+    /** Отмена нового заказа по HTTP: items лениво и не загружены внутри транзакции сервиса
+     *  (резерв не снимался) — ответ должен сериализоваться без 500. */
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void cancellingNewOrderViaHttpReturnsCancelledOrder() throws Exception {
+        Order order = orderService.checkout(
+                checkoutRequest(1, DeliveryMethod.PICKUP, PaymentMethod.CASH_PICKUP));
+
+        mockMvc.perform(post("/api/admin/orders/" + order.getId() + "/status")
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"status\":\"CANCELLED\",\"reason\":\"клиент передумал\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.cancelReason").value("клиент передумал"))
+                .andExpect(jsonPath("$.items[0].sku").value("ORD-1"));
     }
 
     @Test

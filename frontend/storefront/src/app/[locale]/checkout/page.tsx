@@ -10,6 +10,10 @@ import { T } from '@/tokens';
 type Delivery = 'COURIER' | 'PICKUP';
 type Payment = 'CASH_COURIER' | 'CARD_PICKUP' | 'CASH_PICKUP';
 
+// Зеркало серверного @Pattern в CheckoutRequest: 8–15 цифр, допускаются +, пробелы, скобки, дефисы.
+const PHONE_RE = /^\+?(?:[\s()-]*\d){8,15}[\s()-]*$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const inputStyle: React.CSSProperties = {
   width: '100%', height: 48, background: T.paper, border: `1.5px solid ${T.line}`,
   borderRadius: 10, padding: '0 14px', fontSize: 15, outline: 'none', color: T.ink,
@@ -52,9 +56,19 @@ export default function CheckoutPage() {
 
   const next = () => {
     setError('');
-    if (step === 0 && (!name.trim() || !phone.trim())) {
-      setError(t.errContacts);
-      return;
+    if (step === 0) {
+      if (!name.trim() || !phone.trim()) {
+        setError(t.errContacts);
+        return;
+      }
+      if (!PHONE_RE.test(phone.trim())) {
+        setError(t.errPhone);
+        return;
+      }
+      if (email.trim() && !EMAIL_RE.test(email.trim())) {
+        setError(t.errEmail);
+        return;
+      }
     }
     if (step === 1) setPayment(delivery === 'COURIER' ? 'CASH_COURIER' : '');
     if (step === 2 && !payment) {

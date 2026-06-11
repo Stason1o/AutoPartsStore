@@ -1,10 +1,12 @@
 package md.sacramento.orders;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -19,7 +21,11 @@ public final class OrderDtos {
     }
 
     public record CheckoutRequest(@NotBlank String customerName,
-                                  @NotBlank String phone,
+                                  @NotBlank
+                                  @Pattern(regexp = "\\s*\\+?(?:[\\s()-]*\\d){8,15}[\\s()-]*",
+                                          message = "Неверный формат телефона")
+                                  String phone,
+                                  @Email(message = "Неверный формат email")
                                   String email,
                                   @NotNull DeliveryMethod deliveryMethod,
                                   @NotNull PaymentMethod paymentMethod,
