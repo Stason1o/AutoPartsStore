@@ -525,7 +525,7 @@ export default function ProductEditorPage() {
             (isNew ? (
               <Box sx={{ fontSize: 14, color: C.muted, p: '8px 0' }}>Сначала сохраните товар — затем можно будет привязать автомобили.</Box>
             ) : (
-              <FitTab productId={productId!} slug={product.data?.slug ?? null} active={product.data?.active ?? false} />
+              <FitTab productId={productId!} />
             ))}
 
           {tab === 'stock' && (
@@ -812,7 +812,7 @@ function PhotosTab({ productId }: { productId: number }) {
 
 /* ===================== FIT TAB ===================== */
 
-function FitTab({ productId, slug, active }: { productId: number; slug: string | null; active: boolean }) {
+function FitTab({ productId }: { productId: number }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [filter, setFilter] = useState('');
@@ -826,37 +826,16 @@ function FitTab({ productId, slug, active }: { productId: number; slug: string |
     queryFn: () => api.get<Page<Vehicle>>(`/api/admin/vehicles${qs({ search, page: 0, size: 50 })}`),
   });
 
-  // Полный справочник нужен один раз — чтобы сматчить display-строки привязок к id.
-  // Эндпоинт пагинирован (max size 200), поэтому собираем все страницы.
-  const allVehicles = useQuery({
-    queryKey: ['vehicles', 'fit-init'],
-    queryFn: async () => {
-      const out: Vehicle[] = [];
-      for (let page = 0; ; page++) {
-        const p = await api.get<Page<Vehicle>>(`/api/admin/vehicles${qs({ page, size: 200 })}`);
-        out.push(...p.content);
-        if (page + 1 >= p.totalPages || p.content.length === 0) break;
-      }
-      return out;
-    },
-    staleTime: 60_000,
-  });
-
-  // Список привязок берём из публичной карточки (display-строки) и матчим к справочнику.
-  const detail = useQuery({
-    queryKey: ['product-fits', slug],
-    queryFn: () => api.get<{ fitsVehicles: string[] }>(`/api/products/${slug}`),
-    enabled: !!slug && active,
-    retry: false,
+  const fits = useQuery({
+    queryKey: ['product-vehicles', productId],
+    queryFn: () => api.get<Vehicle[]>(`/api/admin/products/${productId}/vehicles`),
   });
 
   useEffect(() => {
-    if (initialized || !allVehicles.data) return;
-    if (slug && active && !detail.data && !detail.isError) return;
-    const fits = detail.data?.fitsVehicles ?? [];
-    setLinked(allVehicles.data.filter((v) => fits.includes(v.display)));
+    if (initialized || !fits.data) return;
+    setLinked(fits.data);
     setInitialized(true);
-  }, [allVehicles.data, detail.data, detail.isError, initialized, slug, active]);
+  }, [fits.data, initialized]);
 
   const link = useMutation({
     mutationFn: (vehicleId: number) => api.post(`/api/admin/vehicles/${vehicleId}/products/${productId}`),
@@ -874,6 +853,7 @@ function FitTab({ productId, slug, active }: { productId: number; slug: string |
     setLinked((l) => [...l, v]);
     setFilter('');
     queryClient.invalidateQueries({ queryKey: ['unmatched'] });
+    queryClient.invalidateQueries({ queryKey: ['product-vehicles', productId] });
     toast('Автомобиль привязан');
   };
 
@@ -881,6 +861,7 @@ function FitTab({ productId, slug, active }: { productId: number; slug: string |
     await unlink.mutateAsync(v.id);
     setLinked((l) => l.filter((x) => x.id !== v.id));
     queryClient.invalidateQueries({ queryKey: ['unmatched'] });
+    queryClient.invalidateQueries({ queryKey: ['product-vehicles', productId] });
     toast('Привязка удалена');
   };
 

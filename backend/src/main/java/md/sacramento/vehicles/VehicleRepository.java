@@ -26,6 +26,15 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     Optional<Vehicle> findByMakeIgnoreCaseAndModelIgnoreCaseAndYearFromAndYearToAndEngine(
             String make, String model, Integer yearFrom, Integer yearTo, String engine);
 
+    /** Автомобили, привязанные к товару (вкладка «Применимость» в админке). */
+    @Query("""
+            select v from Vehicle v
+            join ProductVehicle pv on pv.id.vehicleId = v.id
+            where pv.id.productId = :productId
+            order by v.make, v.model, v.yearFrom
+            """)
+    List<Vehicle> findLinkedToProduct(@Param("productId") Long productId);
+
     /** Кандидаты под декодированный VIN: марка + пересечение по году (с допуском ±1). */
     @Query("""
             select v from Vehicle v
