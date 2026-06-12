@@ -8,10 +8,19 @@
 #  Админка     -> Vite dev,   порт 5180
 #
 #  Запуск:    ./scripts/start-local.sh
+#             ./scripts/start-local.sh --fresh-db   (стереть базу и начать с чистой)
 #  Остановка: ./scripts/stop-local.sh
 #  Логи:      tail -f .local/logs/*.log
 # ============================================================
 set -euo pipefail
+
+FRESH_DB=0
+for arg in "$@"; do
+  case "$arg" in
+    --fresh-db) FRESH_DB=1 ;;
+    *) echo "Неизвестный аргумент: $arg (поддерживается только --fresh-db)" >&2; exit 1 ;;
+  esac
+done
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LOGS="${ROOT}/.local/logs"
@@ -42,6 +51,12 @@ port_free() {
 
 say "Проверяю порты ${BACKEND_PORT} / ${STOREFRONT_PORT} / ${ADMIN_PORT}..."
 port_free ${BACKEND_PORT}; port_free ${STOREFRONT_PORT}; port_free ${ADMIN_PORT}
+
+if [ "${FRESH_DB}" = 1 ]; then
+  say "Удаляю базу полностью (контейнер + volume sacramento_pgdata)..."
+  docker compose -f "${ROOT}/backend/compose.dev.yaml" down -v >/dev/null 2>&1
+  ok "База удалена — стартуем с чистой (схему создаст Flyway)"
+fi
 
 say "1/4 PostgreSQL (Docker, :5544)..."
 docker compose -f "${ROOT}/backend/compose.dev.yaml" up -d --wait >/dev/null
